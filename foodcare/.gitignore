@@ -16,6 +16,8 @@
 # next.js
 /.next/
 /out/
+/build
+/dist
 
 # production
 /build
@@ -31,7 +33,7 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # env files (can opt-in for committing if needed)
-.env*
+#.env*
 
 # vercel
 .vercel
@@ -39,3 +41,21 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Cache e Arquivos Temporários
+.cache/
+.vite/
+.eslintcache
+
+# Configurações de IDE e Editores
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# Arquivos do Sistema Operacional
+.DS_Store
+Thumbs.db
