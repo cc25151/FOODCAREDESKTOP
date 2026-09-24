@@ -1,48 +1,49 @@
 'use client';
 
-import Link from "next/link";
 import { Phone, Mail } from "lucide-react";
 
-const opcoesParticipacao = [
+const participationOptions = [
   {
-    titulo: "Instituição",
-    descricao:
+    title: "Instituição",
+    description:
       "Seja uma instituição colaborativa com nossa causa e ajude milhares de pessoas",
-    imagem: "/tela-inicial/icon.png",
+    image: "/tela-inicial/icon.png",
   },
   {
-    titulo: "Restaurante",
-    descricao:
+    title: "Restaurante",
+    description:
       "Divulgue seu trabalho fornecendo alimentos para os mais necessitados",
-    imagem: "/tela-inicial/vector.svg",
+    image: "/tela-inicial/vector.svg",
   },
   {
-    titulo: "Receptor",
-    descricao:
+    title: "Receptor",
+    description:
       "Cadastre-se como receptor e receba doações de alimentos disponíveis",
-    imagem: "/tela-inicial/image.svg",
+    image: "/tela-inicial/image.svg",
   },
   {
-    titulo: "Doador-Receptor",
-    descricao:
+    title: "Doador-Receptor",
+    description:
       "Participe do projeto sendo um distribuidor de alimentos recebidos",
-    imagem: "/tela-inicial/icon4.png",
+    image: "/tela-inicial/icon4.png",
   },
 ];
 
-const detalhesContato = [
+const contactDetails = [
   {
-    rotulo: "(19) xxxxx-xxxxx",
-    Icone: Phone,
+    label: "(19) xxxxx-xxxxx",
+    Icon: Phone,
+    href: "tel:+5519000000000",
   },
   {
-    rotulo: "FoodCare@gmail.com",
-    Icone: Mail,
+    label: "FoodCare@gmail.com",
+    Icon: Mail,
+    href: "mailto:FoodCare@gmail.com",
   },
 ];
 
 export const TelaInicial = () => {
-  const rolarParaParticipacao = (): void => {
+  const scrollToParticipation = (): void => {
     document.getElementById("participacao")?.scrollIntoView({
       behavior: "smooth",
       block: "start",
@@ -51,19 +52,21 @@ export const TelaInicial = () => {
 
   return (
     <div className="w-full min-h-screen bg-white text-[#2b2e23] font-sans overflow-x-hidden">
-      {/* HEADER */}
+      {/* HEADER & NAVEGAÇÃO */}
       <header className="w-full flex flex-col relative z-20">
+        {/* Barra Vermelha do Topo */}
         <div className="w-full h-[45px] bg-[#bf211e] flex justify-center items-center px-4 md:px-12">
           <div className="w-full max-w-[1296px] flex justify-between items-center text-white text-sm">
             <address className="flex items-center gap-6 not-italic">
-              {detalhesContato.map((contato) => (
-                <div
-                  key={contato.rotulo}
-                  className="flex items-center gap-2 text-xs sm:text-sm select-text"
+              {contactDetails.map((contact) => (
+                <a
+                  key={contact.label}
+                  className="flex items-center gap-2 hover:opacity-80 transition-opacity text-xs sm:text-sm"
+                  href={contact.href}
                 >
-                  <contato.Icone className="w-4 h-4 text-white" />
-                  <span>{contato.rotulo}</span>
-                </div>
+                  <contact.Icon className="w-4 h-4 text-white" />
+                  <span>{contact.label}</span>
+                </a>
               ))}
             </address>
             <img
@@ -74,6 +77,7 @@ export const TelaInicial = () => {
           </div>
         </div>
 
+        {/* Menu de Navegação Branco */}
         <div className="w-full bg-white border-b border-gray-100 shadow-sm flex justify-center items-center py-4 px-4 md:px-12">
           <div className="w-full max-w-[1296px] flex justify-between items-center">
             <a href="#inicio" className="flex items-center gap-3">
@@ -108,17 +112,18 @@ export const TelaInicial = () => {
               </a>
             </nav>
 
-            <Link
-              href="/login"
-              className="px-6 py-2.5 rounded-full border-[1.5px] border-[#2b2e23] text-sm font-bold hover:bg-[#2b2e23] hover:text-white transition-all cursor-pointer text-center inline-block"
+            <button
+              type="button"
+              onClick={scrollToParticipation}
+              className="px-6 py-2.5 rounded-full border-[1.5px] border-[#2b2e23] text-sm font-bold hover:bg-[#2b2e23] hover:text-white transition-all cursor-pointer"
             >
               Minha Conta
-            </Link>
+            </button>
           </div>
         </div>
       </header>
 
-      {/* HERO */}
+      {/* HERO / TELA INICIAL */}
       <section
         id="inicio"
         className="w-full relative min-h-[500px] sm:min-h-[600px] lg:min-h-[680px] bg-cover bg-center flex items-center justify-center px-4"
@@ -132,23 +137,25 @@ export const TelaInicial = () => {
             Onde sobra, a gente faz chegar.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-md">
-            <Link
-              href="/cadastro?tipo=doador"
-              className="w-full sm:w-auto px-8 py-3.5 bg-[#bf211e] text-white rounded-full font-medium text-sm hover:bg-red-700 shadow-md transition-all cursor-pointer text-center"
+            <button
+              type="button"
+              onClick={scrollToParticipation}
+              className="w-full sm:w-auto px-8 py-3.5 bg-[#bf211e] text-white rounded-full font-medium text-sm hover:bg-red-700 shadow-md transition-all cursor-pointer"
             >
               Seja um doador
-            </Link>
-            <Link
-              href="/cadastro?tipo=receptor"
-              className="w-full sm:w-auto px-8 py-3.5 bg-transparent border-[1.5px] border-[#2b2e23] text-[#2b2e23] rounded-full font-medium text-sm hover:bg-[#2b2e23] hover:text-white transition-all cursor-pointer text-center"
+            </button>
+            <button
+              type="button"
+              onClick={scrollToParticipation}
+              className="w-full sm:w-auto px-8 py-3.5 bg-transparent border-[1.5px] border-[#2b2e23] text-[#2b2e23] rounded-full font-medium text-sm hover:bg-[#2b2e23] hover:text-white transition-all cursor-pointer"
             >
               Seja um receptor
-            </Link>
+            </button>
           </div>
         </div>
       </section>
 
-      {/* PARTICIPAÇÃO */}
+      {/* SEÇÃO PARTICIPAÇÃO */}
       <section
         id="participacao"
         className="w-full bg-[#f8f9fa] py-20 flex justify-center px-4 md:px-8"
@@ -159,23 +166,24 @@ export const TelaInicial = () => {
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
-            {opcoesParticipacao.map((opcao) => (
+            {participationOptions.map((option) => (
               <article
-                key={opcao.titulo}
+                key={option.title}
                 className="bg-white rounded-2xl border border-gray-100 p-8 flex flex-col items-center text-center shadow-sm hover:shadow-md transition-shadow"
               >
+                {/* Círculo em volta dos ícones */}
                 <div className="w-16 h-16 rounded-full bg-[#f0f1ec] flex items-center justify-center mb-6">
                   <img
                     className="w-8 h-8 object-contain"
-                    alt={opcao.titulo}
-                    src={opcao.imagem}
+                    alt={option.title}
+                    src={option.image}
                   />
                 </div>
                 <h3 className="text-xl font-bold text-[#2b2e23] mb-3">
-                  {opcao.titulo}
+                  {option.title}
                 </h3>
                 <p className="text-sm text-gray-600 leading-relaxed">
-                  {opcao.descricao}
+                  {option.description}
                 </p>
               </article>
             ))}
@@ -183,12 +191,13 @@ export const TelaInicial = () => {
         </div>
       </section>
 
-      {/* SOBRE */}
+      {/* SEÇÃO SOBRE (Imagem com Banner Vermelho Integrado no Rodapé) */}
       <section
         id="sobre"
         className="w-full bg-white py-20 flex justify-center px-4 md:px-8"
       >
         <div className="w-full max-w-[1296px] flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-16">
+          {/* Moldura da Imagem com Banner Flutuante Totalmente Integrado */}
           <div className="relative w-full lg:w-1/2 max-w-[560px] h-[400px] sm:h-[460px] rounded-3xl overflow-hidden shadow-lg border border-gray-100 group">
             <img
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
@@ -196,8 +205,10 @@ export const TelaInicial = () => {
               src="/tela-inicial/image-111.png"
             />
 
+            {/* Gradiente sutil para destacar a barra inferior */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
 
+            {/* Elemento Vermelho Integrado à Foto */}
             <div className="absolute bottom-4 left-4 right-4 sm:bottom-5 sm:left-5 sm:right-5 bg-[#bf211e] text-white p-4 sm:p-5 rounded-2xl shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <span className="text-[11px] uppercase tracking-wider text-white/80 font-semibold block mb-0.5">
@@ -209,19 +220,21 @@ export const TelaInicial = () => {
               </div>
 
               <address className="flex flex-col gap-1.5 not-italic border-t sm:border-t-0 sm:border-l border-white/20 pt-2 sm:pt-0 sm:pl-4">
-                {detalhesContato.map((contato) => (
-                  <div
-                    key={contato.rotulo}
-                    className="flex items-center gap-2 select-text"
+                {contactDetails.map((contact) => (
+                  <a
+                    key={contact.label}
+                    className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+                    href={contact.href}
                   >
-                    <contato.Icone className="w-3.5 h-3.5 text-white flex-shrink-0" />
-                    <span className="text-xs sm:text-sm font-medium">{contato.rotulo}</span>
-                  </div>
+                    <contact.Icon className="w-3.5 h-3.5 text-white flex-shrink-0" />
+                    <span className="text-xs sm:text-sm font-medium">{contact.label}</span>
+                  </a>
                 ))}
               </address>
             </div>
           </div>
 
+          {/* Textos da Seção */}
           <div className="flex flex-col items-start gap-6 w-full lg:w-1/2 max-w-[580px]">
             <h2 className="text-3xl sm:text-4xl font-bold text-[#2b2e23]">
               Comida que gera esperança
@@ -241,7 +254,7 @@ export const TelaInicial = () => {
             </p>
             <button
               type="button"
-              onClick={rolarParaParticipacao}
+              onClick={scrollToParticipation}
               className="mt-2 px-8 py-3.5 rounded-full border-[1.5px] border-[#2b2e23] font-bold text-sm hover:bg-[#2b2e23] hover:text-white transition-all cursor-pointer"
             >
               Acompanhe nosso trabalho
