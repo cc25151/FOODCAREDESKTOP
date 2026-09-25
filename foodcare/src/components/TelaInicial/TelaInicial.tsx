@@ -132,20 +132,18 @@ export const TelaInicial = () => {
             Onde sobra, a gente faz chegar.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-md">
-            <button
-              type="button"
-              onClick={rolarParaParticipacao}
-              className="w-full sm:w-auto px-8 py-3.5 bg-[#bf211e] text-white rounded-full font-medium text-sm hover:bg-red-700 shadow-md transition-all cursor-pointer"
+            <Link
+              href="/cadastro?tipo=doador"
+              className="w-full sm:w-auto px-8 py-3.5 bg-[#bf211e] text-white rounded-full font-medium text-sm hover:bg-red-700 shadow-md transition-all cursor-pointer text-center"
             >
               Seja um doador
-            </button>
-            <button
-              type="button"
-              onClick={rolarParaParticipacao}
-              className="w-full sm:w-auto px-8 py-3.5 bg-transparent border-[1.5px] border-[#2b2e23] text-[#2b2e23] rounded-full font-medium text-sm hover:bg-[#2b2e23] hover:text-white transition-all cursor-pointer"
+            </Link>
+            <Link
+              href="/cadastro?tipo=receptor"
+              className="w-full sm:w-auto px-8 py-3.5 bg-transparent border-[1.5px] border-[#2b2e23] text-[#2b2e23] rounded-full font-medium text-sm hover:bg-[#2b2e23] hover:text-white transition-all cursor-pointer text-center"
             >
               Seja um receptor
-            </button>
+            </Link>
           </div>
         </div>
       </section>
