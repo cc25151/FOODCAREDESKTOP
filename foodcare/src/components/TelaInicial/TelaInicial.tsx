@@ -94,12 +94,18 @@ export const TelaInicial = () => {
               >
                 Tela Inicial
               </a>
-              <a
-                href="#sobre"
+              <Link
+                href="/feed-doador"
                 className="px-5 py-2 bg-[#dbdfd0] text-[#2b2e23] rounded-full text-sm font-medium hover:bg-opacity-80 transition-all"
               >
-                Minha Página
-              </a>
+                Feed Doador
+              </Link>
+              <Link
+                href="/feed-receptor"
+                className="px-5 py-2 bg-[#dbdfd0] text-[#2b2e23] rounded-full text-sm font-medium hover:bg-opacity-80 transition-all"
+              >
+                Feed Receptor
+              </Link>
               <a
                 href="#participacao"
                 className="px-5 py-2 bg-[#dbdfd0] text-[#2b2e23] rounded-full text-sm font-medium hover:bg-opacity-80 transition-all"
