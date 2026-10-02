@@ -61,8 +61,7 @@ const itensContato: ItemContato[] = [
 const itensNavegacao: ItemNavegacao[] = [
   { rotulo: "Tela Inicial", link: "/" },
   { rotulo: "Feed Doador", link: "/feed-doador" },
-  { rotulo: "Minhas Doações", link: "/doacoes" },
-  { rotulo: "Feed Receptor", link: "/doacoes/nova" }
+  { rotulo: "Feed Receptor", link: "/" }
 ];
 
 const cartoesPainel: CartaoPainel[] = [
@@ -73,7 +72,7 @@ const cartoesPainel: CartaoPainel[] = [
     titulo: "Minhas Doações Cadastradas",
     descricao: "Monitore, atualize a quantidade e gerencie o histórico de todas as suas doações que estão atualmente aguardando retirada.",
     rotuloAcao: "Acessar lista",
-    link: "/doacoes",
+    link: "/meus-alimentos",
   },
   {
     status: "Novo Lote",

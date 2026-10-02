@@ -3,6 +3,23 @@
 import Link from "next/link";
 import { Phone, Mail } from "lucide-react";
 
+// ==================== TIPOS E INTERFACES ====================
+
+type ItemNavegacao = {
+  rotulo: string;
+  link: string;
+  ativo?: boolean;
+  isRouterLink?: boolean;
+};
+
+// ==================== DADOS E CONSTANTES ====================
+
+const itensNavegacao: ItemNavegacao[] = [
+  { rotulo: "Tela Inicial", link: "#inicio", ativo: true, isRouterLink: false },
+  { rotulo: "Feed Doador", link: "/feed-doador", ativo: false, isRouterLink: true },
+  { rotulo: "Feed Receptor", link: "/feed-receptor", ativo: false, isRouterLink: true }
+];
+
 const opcoesParticipacao = [
   {
     titulo: "Instituição",
@@ -40,6 +57,8 @@ const detalhesContato = [
     Icone: Mail,
   },
 ];
+
+// ==================== COMPONENTE PRINCIPAL ====================
 
 export const TelaInicial = () => {
   const rolarParaParticipacao = (): void => {
@@ -87,31 +106,38 @@ export const TelaInicial = () => {
               </span>
             </a>
 
+            {/* NAVEGAÇÃO */}
             <nav className="hidden md:flex items-center gap-3" aria-label="Navegação principal">
-              <a
-                href="#inicio"
-                className="px-5 py-2 bg-[#dbdfd0] text-[#2b2e23] rounded-full text-sm font-medium hover:bg-opacity-80 transition-all"
-              >
-                Tela Inicial
-              </a>
-              <Link
-                href="/feed-doador"
-                className="px-5 py-2 bg-[#dbdfd0] text-[#2b2e23] rounded-full text-sm font-medium hover:bg-opacity-80 transition-all"
-              >
-                Feed Doador
-              </Link>
-              <Link
-                href="/feed-receptor"
-                className="px-5 py-2 bg-[#dbdfd0] text-[#2b2e23] rounded-full text-sm font-medium hover:bg-opacity-80 transition-all"
-              >
-                Feed Receptor
-              </Link>
-              <a
-                href="#participacao"
-                className="px-5 py-2 bg-[#dbdfd0] text-[#2b2e23] rounded-full text-sm font-medium hover:bg-opacity-80 transition-all"
-              >
-                Minhas Doações
-              </a>
+              {itensNavegacao.map((item) => {
+                const classeBotao = `px-5 py-2 text-[#2b2e23] rounded-full text-sm font-medium transition-all ${
+                  item.ativo
+                    ? "bg-[#dbdfd0]"
+                    : "bg-transparent hover:bg-[#dbdfd0]/50"
+                }`;
+
+                if (item.isRouterLink) {
+                  return (
+                    <Link
+                      key={item.rotulo}
+                      href={item.link}
+                      className={classeBotao}
+                    >
+                      {item.rotulo}
+                    </Link>
+                  );
+                }
+
+                return (
+                  <a
+                    key={item.rotulo}
+                    href={item.link}
+                    className={classeBotao}
+                    aria-current={item.ativo ? "page" : undefined}
+                  >
+                    {item.rotulo}
+                  </a>
+                );
+              })}
             </nav>
 
             <Link
@@ -258,3 +284,5 @@ export const TelaInicial = () => {
     </div>
   );
 };
+
+export default TelaInicial;
