@@ -62,7 +62,7 @@ const detalhesContato = [
 
 export const TelaInicial = () => {
   const rolarParaParticipacao = (): void => {
-    document.getElementById("participacao")?.scrollIntoView({
+    document.getElementById("inicio")?.scrollIntoView({
       behavior: "smooth",
       block: "start",
     });
