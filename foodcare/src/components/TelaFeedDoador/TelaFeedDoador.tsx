@@ -81,7 +81,7 @@ const cartoesPainel: CartaoPainel[] = [
     titulo: "Cadastrar Novo Alimento",
     descricao: "Disponibilize sobras limpas, cestas excedentes ou produtos perto da validade diretamente para nossa rede de receptores.",
     rotuloAcao: "Ir para formulário",
-    link: "/doacoes/nova",
+    link: "/cadastrar-alimento",
   },
 ];
 
