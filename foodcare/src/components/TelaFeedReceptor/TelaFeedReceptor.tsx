@@ -2,13 +2,13 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Phone,
   Mail,
   Search,
   X,
   MapPin,
-  CheckCircle2,
   Utensils,
   ChevronRight,
 } from "lucide-react";
@@ -245,7 +245,7 @@ interface ModalProps {
 }
 
 const ModalDetalhesAlimento: React.FC<ModalProps> = ({ alimento, onClose }) => {
-  const [solicitado, setSolicitado] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -258,11 +258,8 @@ const ModalDetalhesAlimento: React.FC<ModalProps> = ({ alimento, onClose }) => {
   if (!alimento) return null;
 
   const handleQueroEsteProduto = () => {
-    setSolicitado(true);
-    setTimeout(() => {
-      setSolicitado(false);
-      onClose();
-    }, 2500);
+    onClose();
+    router.push("/produto-requisitado");
   };
 
   return (
@@ -348,22 +345,13 @@ const ModalDetalhesAlimento: React.FC<ModalProps> = ({ alimento, onClose }) => {
               {alimento.descricaoDetalhada}
             </p>
           </div>
-
-          {/* Botão de Ação */}
-          {solicitado ? (
-            <div className="flex items-center justify-center gap-2 p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-sm font-bold animate-pulse">
-              <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-              Solicitação realizada com sucesso!
-            </div>
-          ) : (
-            <button
-              onClick={handleQueroEsteProduto}
-              className="w-full py-3.5 bg-[#bf211e] hover:bg-[#a91d1a] text-white font-bold text-base rounded-xl transition-all shadow-md hover:shadow-lg active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2"
-            >
-              <span>Quero este produto</span>
-              <ChevronRight className="w-5 h-5" />
-            </button>
-          )}
+          <button
+            onClick={handleQueroEsteProduto}
+            className="w-full py-3.5 bg-[#bf211e] hover:bg-[#a91d1a] text-white font-bold text-base rounded-xl transition-all shadow-md hover:shadow-lg active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2"
+          >
+            <span>Quero este produto</span>
+            <ChevronRight className="w-5 h-5" />
+          </button>
         </div>
       </div>
     </div>
