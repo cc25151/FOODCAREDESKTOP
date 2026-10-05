@@ -61,7 +61,7 @@ const itensContato: ItemContato[] = [
 const itensNavegacao: ItemNavegacao[] = [
   { rotulo: "Tela Inicial", link: "/" },
   { rotulo: "Feed Doador", link: "/feed-doador" },
-  { rotulo: "Feed Receptor", link: "/" }
+  { rotulo: "Feed Receptor", link: "/feed-receptor"}
 ];
 
 const cartoesPainel: CartaoPainel[] = [
