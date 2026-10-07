@@ -141,7 +141,7 @@ export const TelaInicial = () => {
             </nav>
 
             <Link
-              href="/login"
+              href="/perfil"
               className="px-6 py-2.5 rounded-full border-[1.5px] border-[#2b2e23] text-sm font-bold hover:bg-[#2b2e23] hover:text-white transition-all cursor-pointer text-center inline-block"
             >
               Minha Conta

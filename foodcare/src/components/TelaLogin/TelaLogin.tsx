@@ -191,12 +191,12 @@ export const Login = () => {
 
           <p className="text-sm text-[#ffe8dc]/80 flex items-center justify-center gap-1.5">
             <span>Não tem uma conta?</span>
-            <button
-              type="button"
-              className="font-bold text-[#ff8a65] hover:text-white underline transition-colors cursor-pointer bg-transparent border-0"
+            <Link
+              href="/cadastro"
+              className="font-bold text-[#ff8a65] hover:text-white underline transition-colors"
             >
               Criar conta
-            </button>
+            </Link>
           </p>
         </section>
       </div>
