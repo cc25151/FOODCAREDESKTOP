@@ -53,7 +53,7 @@ const SecaoCabecalho = () => {
               className="flex items-center gap-2 text-xs sm:text-sm text-white hover:underline no-underline"
             >
               <Phone className="w-4 h-4 text-white" />
-              <span>(19) 3124-5500</span>
+              <span>(19) 98956-0311</span>
             </a>
             <a
               href="mailto:contato@foodcare.org"

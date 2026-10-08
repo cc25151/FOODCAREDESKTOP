@@ -80,7 +80,7 @@ const itensNavegacao: ItemNavegacao[] = [
 
 const detalhesContato = [
   {
-    rotulo: "(19) 3124-5500",
+    rotulo: "(19) 98956-0311",
     Icone: Phone,
     href: "tel:+551931245500",
   },

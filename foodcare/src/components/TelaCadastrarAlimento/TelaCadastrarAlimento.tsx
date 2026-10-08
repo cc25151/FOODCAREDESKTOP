@@ -38,14 +38,14 @@ const itensNavegacao: ItemNavegacao[] = [
 
 const detalhesContato = [
   {
-    rotulo: "(19) 3124-5500",
+    rotulo: "(19) 98956-0311",
     Icone: Phone,
-    href: "tel:+551931245500",
+    href: "tel:+5519989560311",
   },
   {
-    rotulo: "contato@foodcare.org",
+    rotulo: "FoodCare@gmail.com",
     Icone: Mail,
-    href: "mailto:contato@foodcare.org",
+    href: "mailto:FoodCare@gmail.com",
   },
 ];
 

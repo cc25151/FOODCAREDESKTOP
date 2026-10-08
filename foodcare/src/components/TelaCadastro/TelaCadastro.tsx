@@ -48,7 +48,7 @@ const opcoesParticipacao: OpcaoParticipacao[] = [
 
 const detalhesContato = [
   {
-    rotulo: "(19) xxxxx-xxxxx",
+    rotulo: "(19) 98956-0311",
     Icone: Phone,
   },
   {
