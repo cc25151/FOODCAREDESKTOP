@@ -48,12 +48,12 @@ interface Doacao {
 const itensContato: ItemContato[] = [
   {
     rotulo: "Telefone",
-    valor: "(19) 3124-5500",
+    valor: "(19) 98956-0311",
     Icone: Phone as IconeProps,
   },
   {
     rotulo: "E-mail",
-    valor: "contato@foodcare.org",
+    valor: "FoodCare@gmail.com",
     Icone: Mail as IconeProps,
   },
 ];

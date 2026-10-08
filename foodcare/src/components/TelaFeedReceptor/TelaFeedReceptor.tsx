@@ -11,6 +11,7 @@ import {
   MapPin,
   Utensils,
   ChevronRight,
+  User
 } from "lucide-react";
 
 // ==================== TIPOS E INTERFACES ====================
@@ -145,8 +146,8 @@ const itensNavegacao: ItemNavegacao[] = [
 ];
 
 const detalhesContato = [
-  { rotulo: "(19) 3124-5500", Icone: Phone, href: "tel:+551931245500" },
-  { rotulo: "contato@foodcare.org", Icone: Mail, href: "mailto:contato@foodcare.org" },
+  { rotulo: "(19) 98956-0311", Icone: Phone, href: "tel:+5519989560311" },
+  { rotulo: "FoodCare@gmail.com", Icone: Mail, href: "mailto:FoodCare@gmail.com" },
 ];
 
 const linksPaginas = ["Tela Inicial", "Sobre Nós", "Doações"];
@@ -244,7 +245,7 @@ interface ModalProps {
   onClose: () => void;
 }
 
-const ModalDetalhesAlimento: React.FC<ModalProps> = ({ alimento, onClose }) => {
+export const ModalDetalhesAlimento: React.FC<ModalProps> = ({ alimento, onClose }) => {
   const router = useRouter();
 
   useEffect(() => {
@@ -262,6 +263,13 @@ const ModalDetalhesAlimento: React.FC<ModalProps> = ({ alimento, onClose }) => {
     router.push("/produto-requisitado");
   };
 
+  const handleIrParaPerfilDoador = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onClose();
+    // Se o objeto 'alimento' possuir ID do doador, você pode adaptar para: `/perfil-doador/${alimento.doadorId}`
+    router.push("/perfil-doador");
+  };
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn overflow-y-auto"
@@ -274,7 +282,6 @@ const ModalDetalhesAlimento: React.FC<ModalProps> = ({ alimento, onClose }) => {
         className="relative w-full max-w-lg bg-white rounded-3xl border border-[#e8eaaf] shadow-2xl overflow-hidden my-8 transition-all"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Botão Fechar */}
         <button
           onClick={onClose}
           className="absolute top-4 left-4 z-10 p-2.5 bg-white/90 hover:bg-white text-gray-700 rounded-full shadow-md transition-transform hover:scale-105 border border-gray-200 cursor-pointer"
@@ -283,7 +290,6 @@ const ModalDetalhesAlimento: React.FC<ModalProps> = ({ alimento, onClose }) => {
           <X className="w-5 h-5 text-[#2b2e23]" />
         </button>
 
-        {/* Imagem do Alimento */}
         <div className="relative w-full h-64 bg-gray-100 flex items-center justify-center overflow-hidden">
           <img
             src={alimento.imagem}
@@ -291,15 +297,13 @@ const ModalDetalhesAlimento: React.FC<ModalProps> = ({ alimento, onClose }) => {
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
-          <span className="absolute bottom-3 right-3 bg-white/95 text-[#2b2e23] font-semibold text-xs px-3 py-1.5 rounded-full shadow-sm flex items-center gap-1.5">
+          <span className="absolute bottom-3 right-3 bg-white/95 text-[#2b2e23] font-semibold text-xs px-3 py-1.5 rounded-full shadow-xs flex items-center gap-1.5">
             <Utensils className="w-3.5 h-3.5 text-[#bf211e]" />
             {alimento.quantidade}
           </span>
         </div>
 
-        {/* Conteúdo do Modal */}
         <div className="p-6 flex flex-col gap-5">
-          {/* Cabeçalho do Produto */}
           <div className="text-center bg-[#fdfdf7] p-4 rounded-2xl border border-[#e8eaaf]">
             <h2
               id="titulo-modal"
@@ -307,14 +311,23 @@ const ModalDetalhesAlimento: React.FC<ModalProps> = ({ alimento, onClose }) => {
             >
               {alimento.nome}
             </h2>
-            <div className="flex items-center justify-center gap-1.5 text-xs text-gray-600 mt-1.5">
-              <MapPin className="w-4 h-4 text-[#bf211e]" />
-              <span className="font-semibold text-[#2b2e23]">Doadores Próximos:</span>
-              <span>{alimento.doadorNome} ({alimento.distancia})</span>
+            <div className="flex items-center justify-center gap-1.5 text-xs text-gray-600 mt-1.5 flex-wrap">
+              <MapPin className="w-4 h-4 text-[#bf211e] shrink-0" />
+              <span className="font-semibold text-[#2b2e23]">Doador:</span>
+              
+              {/* Nome do doador clicável no cabeçalho */}
+              <button
+                type="button"
+                onClick={handleIrParaPerfilDoador}
+                className="font-bold text-[#bf211e] hover:underline cursor-pointer bg-transparent border-0 p-0 text-xs"
+              >
+                {alimento.doadorNome}
+              </button>
+              
+              <span>({alimento.distancia})</span>
             </div>
           </div>
 
-          {/* Mapa Visual Simulado de Localização */}
           <div className="w-full rounded-2xl overflow-hidden border border-gray-200 relative bg-slate-100 h-32 flex flex-col justify-between p-3">
             <div className="absolute inset-0 opacity-20 bg-[radial-[#bf211e]_1px,transparent_1px] [background-size:16px_16px]" />
             <div className="relative z-10 flex items-center justify-between">
@@ -325,18 +338,25 @@ const ModalDetalhesAlimento: React.FC<ModalProps> = ({ alimento, onClose }) => {
                 Validade: {alimento.dataValidade}
               </span>
             </div>
-            <div className="relative z-10 flex items-center gap-2 bg-white/90 p-2 rounded-xl border border-gray-200">
-              <div className="w-8 h-8 rounded-full bg-[#bf211e]/10 flex items-center justify-center text-[#bf211e] font-bold text-xs shrink-0">
-                <MapPin className="w-4 h-4" />
+            
+            {/* Bloco do Doador no mapa clicável */}
+            <button
+              type="button"
+              onClick={handleIrParaPerfilDoador}
+              className="relative z-10 flex items-center gap-2 bg-white/95 hover:bg-white p-2 rounded-xl border border-gray-200 text-left transition-colors cursor-pointer group"
+            >
+              <div className="w-8 h-8 rounded-full bg-[#bf211e]/10 flex items-center justify-center text-[#bf211e] font-bold text-xs shrink-0 group-hover:bg-[#bf211e] group-hover:text-white transition-colors">
+                <User className="w-4 h-4" />
               </div>
-              <div className="text-left overflow-hidden">
-                <p className="text-xs font-bold text-[#2b2e23] truncate">{alimento.doadorNome}</p>
-                <p className="text-[11px] text-gray-500">Clique para abrir direções no mapa</p>
+              <div className="overflow-hidden">
+                <p className="text-xs font-bold text-[#2b2e23] group-hover:text-[#bf211e] group-hover:underline truncate">
+                  {alimento.doadorNome}
+                </p>
+                <p className="text-[11px] text-gray-500">Clique para ver o perfil público</p>
               </div>
-            </div>
+            </button>
           </div>
 
-          {/* Descrição do Produto */}
           <div className="flex flex-col gap-2">
             <h3 className="font-bold text-sm text-[#2b2e23] text-center">
               Descrição do Produto:
@@ -345,6 +365,7 @@ const ModalDetalhesAlimento: React.FC<ModalProps> = ({ alimento, onClose }) => {
               {alimento.descricaoDetalhada}
             </p>
           </div>
+
           <button
             onClick={handleQueroEsteProduto}
             className="w-full py-3.5 bg-[#bf211e] hover:bg-[#a91d1a] text-white font-bold text-base rounded-xl transition-all shadow-md hover:shadow-lg active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2"
