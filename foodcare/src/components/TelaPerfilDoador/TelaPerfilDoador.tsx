@@ -2,10 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import Topo from "@/components/Cabecalho";
 import { useRouter } from "next/navigation";
 import {
-  Phone,
-  Mail,
   User,
   Star,
   MessageSquareQuote,
@@ -36,83 +35,6 @@ export interface PerfilPublicoDoador {
   totalAvaliacoesTexto: string;
   detalhes: DetalhePerfil[];
 }
-
-// ==================== CABEÇALHO ====================
-
-const SecaoCabecalho = () => {
-  return (
-    <header className="w-full flex flex-col relative z-20">
-      <div className="w-full h-[45px] bg-[#bf211e] flex justify-center items-center px-4 md:px-12">
-        <div className="w-full max-w-[1296px] flex justify-between items-center text-white text-sm">
-          <address className="flex items-center gap-6 not-italic">
-            <a
-              href="tel:+551931245500"
-              className="flex items-center gap-2 text-xs sm:text-sm text-white hover:underline no-underline"
-            >
-              <Phone className="w-4 h-4 text-white" />
-              <span>(19) 98956-0311</span>
-            </a>
-            <a
-              href="mailto:FoodCare@gmail.com"
-              className="flex items-center gap-2 text-xs sm:text-sm text-white hover:underline no-underline"
-            >
-              <Mail className="w-4 h-4 text-white" />
-              <span>FoodCare@gmail.com</span>
-            </a>
-          </address>
-          <img
-            className="h-5 w-auto object-contain"
-            alt="Redes sociais FoodCare"
-            src="/social.svg"
-          />
-        </div>
-      </div>
-
-      <div className="w-full bg-white border-b border-gray-100 shadow-xs flex justify-center items-center py-4 px-4 md:px-12">
-        <div className="w-full max-w-[1296px] flex justify-between items-center">
-          <Link href="/" className="flex items-center gap-3 no-underline">
-            <img
-              className="h-10 sm:h-12 w-auto object-contain"
-              alt="Logo FoodCare"
-              src="/logo-preta.png"
-            />
-            <span className="font-serif italic font-normal text-2xl text-[#474747] tracking-tight">
-              FOODCARE
-            </span>
-          </Link>
-
-          <nav className="hidden md:flex items-center gap-3" aria-label="Navegação principal">
-            <Link
-              href="/"
-              className="px-5 py-2 text-[#2b2e23] rounded-full text-sm font-medium hover:bg-[#dbdfd0] transition-all"
-            >
-              Tela Inicial
-            </Link>
-            <Link
-              href="/minha-pagina"
-              className="px-5 py-2 text-[#2b2e23] rounded-full text-sm font-medium hover:bg-[#dbdfd0] transition-all"
-            >
-              Feed Doador
-            </Link>
-            <Link
-              href="/feed-doador"
-              className="px-5 py-2 text-[#2b2e23] rounded-full text-sm font-medium hover:bg-[#dbdfd0] transition-all"
-            >
-              Feed Receptor
-            </Link>
-          </nav>
-
-          <Link
-            href="/feed-receptor"
-            className="px-6 py-2.5 rounded-full border-[1.5px] border-[#2b2e23] text-sm font-bold hover:bg-[#2b2e23] hover:text-white transition-all cursor-pointer text-center"
-          >
-            Minha Conta
-          </Link>
-        </div>
-      </div>
-    </header>
-  );
-};
 
 // ==================== DETALHES DO DOADOR ====================
 
@@ -290,7 +212,7 @@ export const PerfilDoador = () => {
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-[#f8f8f6] text-[#2b2e23] font-sans">
-      <SecaoCabecalho />
+      <Topo />
 
       <main className="flex-1 w-full flex justify-center py-8 px-4 md:px-12">
         <div className="w-full max-w-[1296px] flex flex-col gap-6">

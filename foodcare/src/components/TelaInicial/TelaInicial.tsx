@@ -2,23 +2,9 @@
 
 import Link from "next/link";
 import { Phone, Mail } from "lucide-react";
-
-// ==================== TIPOS E INTERFACES ====================
-
-type ItemNavegacao = {
-  rotulo: string;
-  link: string;
-  ativo?: boolean;
-  isRouterLink?: boolean;
-};
+import Topo from "@/components/Cabecalho";
 
 // ==================== DADOS E CONSTANTES ====================
-
-const itensNavegacao: ItemNavegacao[] = [
-  { rotulo: "Tela Inicial", link: "#inicio", ativo: true, isRouterLink: false },
-  { rotulo: "Feed Doador", link: "/feed-doador", ativo: false, isRouterLink: true },
-  { rotulo: "Feed Receptor", link: "/feed-receptor", ativo: false, isRouterLink: true }
-];
 
 const opcoesParticipacao = [
   {
@@ -53,7 +39,7 @@ const detalhesContato = [
     Icone: Phone,
   },
   {
-    rotulo: "FoodCare@gmail.com",
+    rotulo: "contato@foodcare.org",
     Icone: Mail,
   },
 ];
@@ -62,7 +48,7 @@ const detalhesContato = [
 
 export const TelaInicial = () => {
   const rolarParaParticipacao = (): void => {
-    document.getElementById("inicio")?.scrollIntoView({
+    document.getElementById("participacao")?.scrollIntoView({
       behavior: "smooth",
       block: "start",
     });
@@ -70,85 +56,8 @@ export const TelaInicial = () => {
 
   return (
     <div className="w-full min-h-screen bg-white text-[#2b2e23] font-sans overflow-x-hidden">
-      {/* HEADER */}
-      <header className="w-full flex flex-col relative z-20">
-        <div className="w-full h-[45px] bg-[#bf211e] flex justify-center items-center px-4 md:px-12">
-          <div className="w-full max-w-[1296px] flex justify-between items-center text-white text-sm">
-            <address className="flex items-center gap-6 not-italic">
-              {detalhesContato.map((contato) => (
-                <div
-                  key={contato.rotulo}
-                  className="flex items-center gap-2 text-xs sm:text-sm select-text"
-                >
-                  <contato.Icone className="w-4 h-4 text-white" />
-                  <span>{contato.rotulo}</span>
-                </div>
-              ))}
-            </address>
-            <img
-              className="h-6 w-auto object-contain"
-              alt="Redes sociais FoodCare"
-              src="/social.svg"
-            />
-          </div>
-        </div>
-
-        <div className="w-full bg-white border-b border-gray-100 shadow-sm flex justify-center items-center py-4 px-4 md:px-12">
-          <div className="w-full max-w-[1296px] flex justify-between items-center">
-            <a href="#inicio" className="flex items-center gap-3">
-              <img
-                className="h-10 sm:h-12 w-auto object-contain"
-                alt="Logo FoodCare"
-                src="/logo-preta.png"
-              />
-              <span className="font-serif italic font-normal text-2xl text-[#474747] tracking-tight">
-                FOODCARE
-              </span>
-            </a>
-
-            {/* NAVEGAÇÃO */}
-            <nav className="hidden md:flex items-center gap-3" aria-label="Navegação principal">
-              {itensNavegacao.map((item) => {
-                const classeBotao = `px-5 py-2 text-[#2b2e23] rounded-full text-sm font-medium transition-all ${
-                  item.ativo
-                    ? "bg-[#dbdfd0]"
-                    : "bg-transparent hover:bg-[#dbdfd0]/50"
-                }`;
-
-                if (item.isRouterLink) {
-                  return (
-                    <Link
-                      key={item.rotulo}
-                      href={item.link}
-                      className={classeBotao}
-                    >
-                      {item.rotulo}
-                    </Link>
-                  );
-                }
-
-                return (
-                  <a
-                    key={item.rotulo}
-                    href={item.link}
-                    className={classeBotao}
-                    aria-current={item.ativo ? "page" : undefined}
-                  >
-                    {item.rotulo}
-                  </a>
-                );
-              })}
-            </nav>
-
-            <Link
-              href="/perfil"
-              className="px-6 py-2.5 rounded-full border-[1.5px] border-[#2b2e23] text-sm font-bold hover:bg-[#2b2e23] hover:text-white transition-all cursor-pointer text-center inline-block"
-            >
-              Minha Conta
-            </Link>
-          </div>
-        </div>
-      </header>
+      {/* Menu e topo */}
+      <Topo />
 
       {/* HERO */}
       <section
@@ -194,7 +103,7 @@ export const TelaInicial = () => {
             {opcoesParticipacao.map((opcao) => (
               <article
                 key={opcao.titulo}
-                className="bg-white rounded-2xl border border-gray-100 p-8 flex flex-col items-center text-center shadow-sm hover:shadow-md transition-shadow"
+                className="bg-white rounded-2xl border border-gray-100 p-8 flex flex-col items-center text-center shadow-xs hover:shadow-md transition-shadow"
               >
                 <div className="w-16 h-16 rounded-full bg-[#f0f1ec] flex items-center justify-center mb-6">
                   <img
@@ -246,7 +155,7 @@ export const TelaInicial = () => {
                     key={contato.rotulo}
                     className="flex items-center gap-2 select-text"
                   >
-                    <contato.Icone className="w-3.5 h-3.5 text-white flex-shrink-0" />
+                    <contato.Icone className="w-3.5 h-3.5 text-white shrink-0" />
                     <span className="text-xs sm:text-sm font-medium">{contato.rotulo}</span>
                   </div>
                 ))}

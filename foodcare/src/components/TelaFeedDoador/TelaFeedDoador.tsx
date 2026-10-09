@@ -2,25 +2,18 @@
 
 import React, { useState, ComponentType, SVGProps } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import Topo from "@/components/Cabecalho";
+import Footer from "@/components/Rodape";
 import { 
-  Phone, 
-  Mail, 
   Package, 
   PlusCircle, 
   ArrowRight, 
   CheckCircle2, 
   Clock, 
-  User 
 } from "lucide-react";
 
 type IconeProps = ComponentType<SVGProps<SVGSVGElement> & { className?: string }>;
 
-interface ItemContato {
-  rotulo: string;
-  valor: string;
-  Icone: IconeProps;
-}
 
 interface ItemNavegacao {
   rotulo: string;
@@ -45,24 +38,6 @@ interface Doacao {
   imagem: string;
 }
 
-const itensContato: ItemContato[] = [
-  {
-    rotulo: "Telefone",
-    valor: "(19) 98956-0311",
-    Icone: Phone as IconeProps,
-  },
-  {
-    rotulo: "E-mail",
-    valor: "FoodCare@gmail.com",
-    Icone: Mail as IconeProps,
-  },
-];
-
-const itensNavegacao: ItemNavegacao[] = [
-  { rotulo: "Tela Inicial", link: "/" },
-  { rotulo: "Feed Doador", link: "/feed-doador" },
-  { rotulo: "Feed Receptor", link: "/feed-receptor"}
-];
 
 const cartoesPainel: CartaoPainel[] = [
   {
@@ -116,17 +91,8 @@ const doacoesPendentesIniciais: Doacao[] = [
   },
 ];
 
-const linksPaginasRodape: ItemNavegacao[] = [
-  { rotulo: "Tela Inicial", link: "/" },
-  { rotulo: "Minhas Doações", link: "/doacoes" },
-  { rotulo: "Pontos de Coleta", link: "/pontos-coleta" },
-];
-
-const linksContatoRodape = ["Suporte 24h", "Parcerias", "Imprensa"];
-const linksRedesSociaisRodape = ["Twitter", "Facebook", "Instagram"];
 
 export const HomefeedDoador: React.FC = () => {
-  const pathname = usePathname();
   const [doacoesFinalizadas, setDoacoesFinalizadas] = useState<number[]>([]);
 
   const aoFinalizarDoacao = (idDoacao: number) => {
@@ -137,76 +103,7 @@ export const HomefeedDoador: React.FC = () => {
 
   return (
     <div className="min-h-screen w-full bg-[#f8f8f6] text-[#2b2e23] font-sans flex flex-col justify-between overflow-x-hidden">
-      {/* HEADER */}
-      <header className="w-full flex flex-col relative z-20">
-        <div className="w-full h-[40px] bg-[#bf211e] flex justify-center items-center px-4 md:px-12">
-          <div className="w-full max-w-[1296px] flex justify-between items-center text-white text-xs sm:text-sm">
-            <address className="flex items-center gap-6 not-italic">
-              {itensContato.map((contato) => {
-                const IconeComponente = contato.Icone;
-                return (
-                  <div
-                    key={contato.rotulo}
-                    className="flex items-center gap-2 select-text"
-                  >
-                    <IconeComponente className="w-3.5 h-3.5 text-white" />
-                    <span>{contato.valor}</span>
-                  </div>
-                );
-              })}
-            </address>
-            <img
-              className="h-5 w-auto object-contain"
-              alt="Redes sociais FoodCare"
-              src="/social.svg"
-            />
-          </div>
-        </div>
-
-        <div className="w-full bg-white border-b border-gray-200 shadow-sm flex justify-center items-center py-3 px-4 md:px-12">
-          <div className="w-full max-w-[1296px] flex justify-between items-center">
-            <Link href="/" className="flex items-center gap-3">
-              <img
-                className="h-9 sm:h-10 w-auto object-contain"
-                alt="Logo FoodCare"
-                src="/logo-neon.png"
-              />
-              <span className="font-serif italic font-bold text-xl sm:text-2xl text-[#474747] tracking-tight">
-                FOODCARE
-              </span>
-            </Link>
-
-            {/* Menu de navegação superior dinâmico com todas as rotas */}
-            <nav className="hidden lg:flex items-center gap-1 xl:gap-2" aria-label="Navegação principal">
-              {itensNavegacao.map((item) => {
-                const estaAtivo = pathname === item.link;
-                return (
-                  <Link
-                    key={item.rotulo}
-                    href={item.link}
-                    aria-current={estaAtivo ? "page" : undefined}
-                    className={`px-4 py-2 rounded-full text-xs xl:text-sm font-medium transition-all cursor-pointer whitespace-nowrap ${
-                      estaAtivo
-                        ? "bg-[#dbdfd0] text-[#2b2e23] font-semibold"
-                        : "text-[#2b2e23]/80 hover:bg-gray-100"
-                    }`}
-                  >
-                    {item.rotulo}
-                  </Link>
-                );
-              })}
-            </nav>
-
-            <Link
-              href="/login"
-              className="inline-flex items-center gap-2 px-5 py-2 rounded-full border-[1.5px] border-[#2b2e23] text-sm font-bold text-[#172126] hover:bg-[#2b2e23] hover:text-white transition-all cursor-pointer"
-            >
-              <User className="w-4 h-4" />
-              <span>Minha Conta</span>
-            </Link>
-          </div>
-        </div>
-      </header>
+      <Topo />
 
       {/* CONTEÚDO PRINCIPAL */}
       <main className="flex-1 w-full max-w-[1296px] mx-auto px-4 md:px-12 py-8 md:py-12 flex flex-col gap-12">
@@ -349,68 +246,7 @@ export const HomefeedDoador: React.FC = () => {
       </main>
 
       {/* RODAPÉ */}
-      <footer className="w-full bg-white border-t border-gray-200 pt-12 pb-8 px-4 md:px-12 mt-auto">
-        <div className="w-full max-w-[1296px] mx-auto flex flex-col gap-10">
-          <div className="flex flex-col md:flex-row justify-between items-start gap-8">
-            <div className="flex flex-col gap-4 max-w-md">
-              <div className="flex items-center gap-3">
-                <img
-                  className="h-8 w-auto object-contain"
-                  alt="Logo FoodCare"
-                  src="/logo-neon.png"
-                />
-                <span className="font-serif italic font-bold text-xl text-[#2b2e23] tracking-tight">
-                  FOODCARE
-                </span>
-              </div>
-              <p className="text-sm text-gray-600 leading-relaxed">
-                Conectando quem tem em abundância com quem precisa urgentemente. Uma ponte digital contra o desperdício de alimentos.
-              </p>
-            </div>
-
-            <div className="flex items-start gap-12 sm:gap-16">
-              <div className="flex flex-col gap-3">
-                <h4 className="text-sm font-bold text-[#2b2e23]">Páginas</h4>
-                <ul className="flex flex-col gap-2">
-                  {linksPaginasRodape.map((pagina) => (
-                    <li key={pagina.rotulo}>
-                      <Link href={pagina.link} className="text-xs sm:text-sm text-gray-500 hover:text-[#2b2e23] transition-colors">
-                        {pagina.rotulo}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="flex flex-col gap-3">
-                <h4 className="text-sm font-bold text-[#2b2e23]">Contato</h4>
-                <ul className="flex flex-col gap-2">
-                  {linksContatoRodape.map((link) => (
-                    <li key={link}>
-                      <a href="#" className="text-xs sm:text-sm text-gray-500 hover:text-[#2b2e23] transition-colors">
-                        {link}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          <hr className="border-gray-200 w-full" />
-
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-xs sm:text-sm text-gray-500">
-            <p>© 2026 FoodCare - Juntos contra o desperdício e a fome.</p>
-            <div className="flex items-center gap-4">
-              {linksRedesSociaisRodape.map((rede) => (
-                <a key={rede} href="#" className="hover:text-[#2b2e23] transition-colors">
-                  {rede}
-                </a>
-              ))}
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };

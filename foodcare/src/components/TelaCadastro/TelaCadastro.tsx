@@ -69,7 +69,7 @@ export const Cadastro = () => {
   const [tipoParticipacao, setTipoParticipacao] = useState<TipoParticipacao>("doador");
   const [estaEnviando, setEstaEnviando] = useState(false);
 
-  // Atualiza o tipo de participação caso o usuário venha com o parâmetro na URL
+  // muda o tipo de acordo com o parâmetro
   useEffect(() => {
     if (tipoUrl && ["doador", "receptor", "ambos"].includes(tipoUrl)) {
       setTipoParticipacao(tipoUrl);

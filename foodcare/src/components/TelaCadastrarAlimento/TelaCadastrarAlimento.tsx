@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, FormEvent } from "react";
-import Link from "next/link";
+import Footer from "@/components/Rodape";
 import { useRouter } from "next/navigation";
-import { Phone, Mail, ArrowLeft, Calendar } from "lucide-react";
+import Topo from "@/components/Cabecalho";
+import {  ArrowLeft, Calendar } from "lucide-react";
 
 // ==================== TIPOS E INTERFACES ====================
 
@@ -14,12 +15,6 @@ type FormValues = {
   expirationDate: string;
 };
 
-type ItemNavegacao = {
-  rotulo: string;
-  link: string;
-  ativo?: boolean;
-  isRouterLink?: boolean;
-};
 
 // ==================== DADOS E CONSTANTES ====================
 
@@ -28,113 +23,6 @@ const initialFormValues: FormValues = {
   description: "",
   quantity: "",
   expirationDate: "",
-};
-
-const itensNavegacao: ItemNavegacao[] = [
-  { rotulo: "Tela Inicial", link: "/", ativo: false, isRouterLink: true },
-  { rotulo: "Feed Doador", link: "/feed-doador", ativo: true, isRouterLink: true },
-  { rotulo: "Feed Receptor", link: "/feed-receptor", ativo: false, isRouterLink: true },
-];
-
-const detalhesContato = [
-  {
-    rotulo: "(19) 98956-0311",
-    Icone: Phone,
-    href: "tel:+5519989560311",
-  },
-  {
-    rotulo: "FoodCare@gmail.com",
-    Icone: Mail,
-    href: "mailto:FoodCare@gmail.com",
-  },
-];
-
-const linksPaginas = ["Tela Inicial", "Sobre Nós", "Doações"];
-const linksContato = ["Suporte 24h", "Parcerias", "Imprensa"];
-
-// ==================== CABEÇALHO ====================
-
-const SecaoCabecalho = () => {
-  return (
-    <header className="w-full flex flex-col relative z-20">
-      <div className="w-full h-[45px] bg-[#bf211e] flex justify-center items-center px-4 md:px-12">
-        <div className="w-full max-w-[1296px] flex justify-between items-center text-white text-sm">
-          <address className="flex items-center gap-6 not-italic">
-            {detalhesContato.map((contato) => (
-              <a
-                key={contato.rotulo}
-                href={contato.href}
-                className="flex items-center gap-2 text-xs sm:text-sm text-white hover:underline no-underline"
-              >
-                <contato.Icone className="w-4 h-4 text-white" />
-                <span>{contato.rotulo}</span>
-              </a>
-            ))}
-          </address>
-          <img
-            className="h-6 w-auto object-contain"
-            alt="Redes sociais FoodCare"
-            src="/social.svg"
-          />
-        </div>
-      </div>
-
-      <div className="w-full bg-white border-b border-gray-100 shadow-sm flex justify-center items-center py-4 px-4 md:px-12">
-        <div className="w-full max-w-[1296px] flex justify-between items-center">
-          <Link href="/" className="flex items-center gap-3 no-underline">
-            <img
-              className="h-10 sm:h-12 w-auto object-contain"
-              alt="Logo FoodCare"
-              src="/logo-preta.png"
-            />
-            <span className="font-serif italic font-normal text-2xl text-[#474747] tracking-tight">
-              FOODCARE
-            </span>
-          </Link>
-
-          <nav className="hidden md:flex items-center gap-3" aria-label="Navegação principal">
-            {itensNavegacao.map((item) => {
-              const classeBotao = `px-5 py-2 text-[#2b2e23] rounded-full text-sm font-medium transition-all ${
-                item.ativo
-                  ? "bg-[#dbdfd0]"
-                  : "bg-transparent hover:bg-[#dbdfd0]/50"
-              }`;
-
-              if (item.isRouterLink) {
-                return (
-                  <Link
-                    key={item.rotulo}
-                    href={item.link}
-                    className={classeBotao}
-                  >
-                    {item.rotulo}
-                  </Link>
-                );
-              }
-
-              return (
-                <a
-                  key={item.rotulo}
-                  href={item.link}
-                  className={classeBotao}
-                  aria-current={item.ativo ? "page" : undefined}
-                >
-                  {item.rotulo}
-                </a>
-              );
-            })}
-          </nav>
-
-          <Link
-            href="/login"
-            className="px-6 py-2.5 rounded-full border-[1.5px] border-[#2b2e23] text-sm font-bold hover:bg-[#2b2e23] hover:text-white transition-all cursor-pointer text-center inline-block"
-          >
-            Minha Conta
-          </Link>
-        </div>
-      </div>
-    </header>
-  );
 };
 
 // ==================== FORMULÁRIO DE CADASTRO ====================
@@ -299,93 +187,17 @@ const SecaoCadastroAlimento = () => {
   );
 };
 
-// ==================== RODAPÉ ====================
-
-const SecaoRodape = () => {
-  return (
-    <footer
-      className="flex w-full flex-col items-start gap-10 border-t bg-[#f8f8f6] px-6 md:px-[150px] pt-[60px] pb-10"
-      aria-label="Rodapé do site"
-    >
-      <div className="flex w-full flex-col md:flex-row items-start justify-between gap-8">
-        <div className="relative flex w-full md:w-[400px] flex-col items-start gap-5">
-          <Link
-            className="inline-flex items-center gap-3 no-underline"
-            href="/"
-            aria-label="FoodCare - Página inicial"
-          >
-            <img
-              className="h-[34px] w-[38px] object-contain"
-              alt="Logo FoodCare"
-              src="/logo-preta.png"
-            />
-            <span className="font-bold italic text-2xl text-[#2b2e23] [font-family:'Playfair_Display',Helvetica]">
-              FOODCARE
-            </span>
-          </Link>
-          <p className="text-sm leading-relaxed text-[#2b2e23]">
-            Conectando quem tem em abundância com quem precisa urgentemente. Uma ponte digital contra o desperdício de alimentos.
-          </p>
-        </div>
-        <nav
-          className="inline-flex items-start gap-16"
-          aria-label="Links do rodapé"
-        >
-          <div className="relative flex w-[150px] flex-col items-start gap-4">
-            <h2 className="font-bold text-base text-[#2b2e23]">
-              Páginas
-            </h2>
-            {linksPaginas.map((link) => (
-              <a
-                key={link}
-                className="text-sm text-gray-500 hover:text-gray-800 no-underline"
-                href="#"
-              >
-                {link}
-              </a>
-            ))}
-          </div>
-          <div className="relative flex w-[150px] flex-col items-start gap-4">
-            <h2 className="font-bold text-base text-[#2b2e23]">
-              Contato
-            </h2>
-            {linksContato.map((link) => (
-              <a
-                key={link}
-                className="text-sm text-gray-500 hover:text-gray-800 no-underline"
-                href="#"
-              >
-                {link}
-              </a>
-            ))}
-          </div>
-        </nav>
-      </div>
-      <hr className="w-full border-gray-200" />
-      <div className="flex w-full flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-500">
-        <p>
-          © 2026 FoodCare - Juntos contra o desperdício e a fome.
-        </p>
-        <img
-          className="w-[121px] h-[27px] object-contain"
-          alt="Redes sociais"
-          src="/social.svg"
-        />
-      </div>
-    </footer>
-  );
-};
 
 // ==================== COMPONENTE PRINCIPAL ====================
 
 export const TelaCadastrarAlimentos = () => {
   return (
     <div className="flex min-h-screen w-full flex-col items-stretch bg-white text-[#2b2e23] font-sans">
-      <SecaoCabecalho />
+      <Topo />
       <main className="flex flex-1 flex-col">
         <SecaoCadastroAlimento />
       </main>
-      <SecaoRodape />
+      <Footer />
     </div>
   );
 };
