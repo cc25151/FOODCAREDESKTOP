@@ -1,0 +1,7 @@
+namespace FoodCareAPI.Models;
+
+public class Receptor{
+        public int idReceptor { get; set; }
+        public int idUsuario  { get; set; }
+        
+    }
