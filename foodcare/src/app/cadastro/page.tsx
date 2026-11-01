@@ -1,7 +1,12 @@
 'use client';
 
 import Link from "next/link";
+import { isAxiosError } from "axios";
 import { useSearchParams } from "next/navigation";
+import { usuarioService } from '@/services/usuarioService';
+import { receptorService } from '@/services/receptorService';
+import { doadorService } from '@/services/doadorService';
+import { useRouter } from 'next/navigation';
 import { FormEvent, useState, useEffect } from "react";
 import {
   Phone,
@@ -58,13 +63,13 @@ const detalhesContato = [
 ];
 
 export default function Cadastro() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const tipoUrl = searchParams.get("tipo") as TipoParticipacao | null;
-
-  const [nomeCompleto, setNomeCompleto] = useState("");
+  const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
-  const [tipoPessoa, setTipoPessoa] = useState("fisica");
+  const [tipoPessoa, setTipoPessoa] = useState("PF");
   const [documento, setDocumento] = useState("");
   const [tipoParticipacao, setTipoParticipacao] = useState<TipoParticipacao>(() => {
     if (tipoUrl && ["doador", "receptor", "ambos"].includes(tipoUrl)) {
@@ -73,15 +78,53 @@ export default function Cadastro() {
     return "doador";
   });
   const [estaEnviando, setEstaEnviando] = useState(false);
+  const [mensagem, setMensagem] = useState("");
 
-
-  const aoSubmeter = (evento: FormEvent<HTMLFormElement>) => {
+  const aoSubmeter = async (evento: FormEvent<HTMLFormElement>) => {
     evento.preventDefault();
     setEstaEnviando(true);
-    window.setTimeout(() => {
+    setMensagem("");
+
+    try {
+      const resp = await usuarioService.cadastrar({nome, email, senha, tipoPessoa, documento });
+      const respLogin = await usuarioService.login({email, senha})
+
+      localStorage.setItem('token', respLogin.token);
+      localStorage.setItem('idUsuario', respLogin.idUsuario);
+      localStorage.setItem('tipoUsuario', respLogin.tipoUsuario);
+
+      const idUsuario = resp.idUsuario ?? resp.id;
+      switch (tipoParticipacao){
+        case "doador":
+          await doadorService.cadastrar({idUsuario});
+          router.push("/feed-doador")
+          break;
+        case "receptor":
+          await receptorService.cadastrar({idUsuario});
+          router.push("/feed-receptor")
+          break;
+        case "ambos":
+          await doadorService.cadastrar({idUsuario});
+          await receptorService.cadastrar({idUsuario});
+          router.push("/feed-receptor")
+          break;
+      }
+
+    } catch (error: unknown) {
+      if (isAxiosError(error)) {
+        if (error.response?.status === 401) {
+          setMensagem("Dados já cadastrados.");
+        } else {
+          setMensagem("Erro ao conectar com o servidor. Tente novamente mais tarde.");
+        }
+      } else {
+        setMensagem("Ocorreu um erro inesperado.");
+      }
+    } finally {
       setEstaEnviando(false);
-    }, 600);
+    }
   };
+
 
   return (
       <main className="relative min-h-screen w-full bg-[#1a0a00] flex flex-col justify-between items-center overflow-x-hidden font-sans">
@@ -192,8 +235,8 @@ export default function Cadastro() {
                       type="text"
                       autoComplete="name"
                       required
-                      value={nomeCompleto}
-                      onChange={(evento) => setNomeCompleto(evento.target.value)}
+                      value={nome}
+                      onChange={(evento) => setNome(evento.target.value)}
                       placeholder="Seu nome completo"
                       className="w-full bg-transparent text-sm text-white placeholder:text-white/50 focus:outline-none"
                   />
@@ -253,10 +296,10 @@ export default function Cadastro() {
                       onChange={(evento) => setTipoPessoa(evento.target.value)}
                       className="w-full bg-transparent text-sm text-white focus:outline-none appearance-none cursor-pointer pr-6"
                   >
-                    <option value="fisica" className="bg-[#1a0a00] text-white">
+                    <option value="PF" className="bg-[#1a0a00] text-white">
                       Pessoa Física
                     </option>
-                    <option value="juridica" className="bg-[#1a0a00] text-white">
+                    <option value="PJ" className="bg-[#1a0a00] text-white">
                       Pessoa Jurídica
                     </option>
                   </select>
@@ -275,9 +318,11 @@ export default function Cadastro() {
                       name="documento"
                       type="text"
                       inputMode="numeric"
+                      required
+                      maxLength={tipoPessoa === "fisica" ? 11 : 14}
                       value={documento}
-                      onChange={(evento) => setDocumento(evento.target.value)}
-                      placeholder="000.000.000-00"
+                      onChange={(e) => setDocumento(e.target.value.replace(/\D/g, ""))}
+                      placeholder={tipoPessoa === "fisica" ? "12345678901" : "12345678000199"}
                       className="w-full bg-transparent text-sm text-white placeholder:text-white/50 focus:outline-none"
                   />
                 </div>
@@ -319,6 +364,14 @@ export default function Cadastro() {
                   })}
                 </div>
               </fieldset>
+
+              {mensagem && (
+                  <div className="w-full">
+                    <p className="text-xs text-center font-semibold text-red-200 bg-red-500/20 border border-red-500/40 rounded-xl py-2.5 px-3 mb-3">
+                      {mensagem}
+                    </p>
+                  </div>
+              )}
 
               <button
                   type="submit"
