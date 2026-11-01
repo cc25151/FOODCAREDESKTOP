@@ -7,6 +7,16 @@ using FoodCareAPI.Data;
 var construtor = WebApplication.CreateBuilder(args);
 
 // 1. CONFIGURAÇÃO DOS SERVIÇOS
+construtor.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp",
+        policy =>
+        {
+            policy.WithOrigins("http://localhost:5173", "http://localhost:3000") // Origens permitidas (Vite / CRA)
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        });
+});
 
 // Adiciona suporte aos Controllers do padrão MVC
 construtor.Services.AddControllers();
@@ -59,6 +69,9 @@ if (aplicacao.Environment.IsDevelopment())
 }
 
 aplicacao.UseRouting(); 
+
+// Aplicar o middleware de CORS (deve vir antes de MapControllers)
+aplicacao.UseCors("AllowReactApp");
 
 // Ativa a Autenticação e Autorização
 aplicacao.UseAuthentication(); 
