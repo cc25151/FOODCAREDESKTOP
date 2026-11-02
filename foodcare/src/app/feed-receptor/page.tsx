@@ -4,140 +4,59 @@ import React, { useState, useEffect } from "react";
 import Footer from "@/components/Rodape";
 import Topo from "@/components/Cabecalho";
 import { useRouter } from "next/navigation";
+import { isAxiosError } from "axios";
+import { categoriaService } from "@/services/categoriaService";
+import { alimentoService } from "@/services/alimentoService";
 import {
   Search,
   X,
   MapPin,
   Utensils,
   ChevronRight,
-  User
+  User,
+  Sparkles,
+  MapPinOff,
+  Loader2
 } from "lucide-react";
 
-// ==================== TIPOS E INTERFACES ====================
+// ==================== TIPOS ====================
 
-export type Alimento = {
-  id: string;
+export type Categoria = {
+  idCategoria: number;
   nome: string;
-  descricaoCurta: string;
-  descricaoDetalhada: string;
-  quantidade: string;
-  dataValidade: string;
-  doadorNome: string;
-  distancia: string;
-  imagem: string;
-  mapaImagem?: string;
 };
 
+export type Alimento = {
+  idAlimento: number;
+  nome: string;
+  descricao?: string;
+  qntd?: string;
+  quantidade?: string;
+  validade?: string;
+  idCategoria?: number;
+  idDoador?: number;
+  distancia?: number;
+  doador?: {
+    idDoador: number;
+    idUsuario: number;
+    usuario?: {
+      nome?: string;
+      cidade?: string;
+      bairro?: string;
+    };
+  };
+  imagem?: string;
+};
 
-// ==================== DADOS MOCK (PRONTO PARA API) ====================
+const imagens: Record<number, string> = {
+  1: "/doacoes/marmita-carne.png",
+  2: "/doacoes/padaria.png",
+  3: "/doacoes/frutas.png",
+  4: "/doacoes/embalados.png",
+  9: "/doacoes/enlatados.png",
+};
 
-const alimentosMock: Alimento[] = [
-  {
-    id: "1",
-    nome: "Marmita de Carne",
-    descricaoCurta: "Arroz, feijão, purê, carne e salada (500g)",
-    descricaoDetalhada:
-        "Marmita reforçada contendo Arroz agulhinha soltinho (150g), Feijão carioca temperado com alho e louro (100g), Purê de batata cremoso com manteiga (100g), Carne bovina de panela desfiada e suculenta (120g) e Salada fresca de alface com tomate (30g). Embalagem selada e higienizada.",
-    quantidade: "15 unidades",
-    dataValidade: "12/03/2026",
-    doadorNome: "Restaurante Sabor Real",
-    distancia: "1.2 km de distância",
-    imagem: "/doacoes/marmita-carne.png",
-    mapaImagem: "https://maps.googleapis.com/maps/api/staticmap?center=-22.9068,-47.0616&zoom=14&size=600x250&maptype=roadmap&markers=color:red%7Clabel:D%7C-22.9068,-47.0616&key=",
-  },
-  {
-    id: "2",
-    nome: "Marmita de Frango",
-    descricaoCurta: "Arroz, feijão, frango, batata frita e salada (300g)",
-    descricaoDetalhada:
-        "Filé de frango grelhado marinado no limão e ervas finas (100g), acompanhado de Arroz branco (100g), Feijão fresco (50g) e porção de Batata frita crocante (50g). Tudo preparado na manhã de hoje sob rigorosas normas de higiene.",
-    quantidade: "20 unidades",
-    dataValidade: "12/03/2026",
-    doadorNome: "Marmitaria da Dona Ana",
-    distancia: "2.4 km de distância",
-    imagem: "/doacoes/marmita-frango.png",
-    mapaImagem: "https://maps.googleapis.com/maps/api/staticmap?center=-22.9000,-47.0600&zoom=14&size=600x250&maptype=roadmap&markers=color:red%7Clabel:D%7C-22.9000,-47.0600&key=",
-  },
-  {
-    id: "3",
-    nome: "Marmita de Strogonoff",
-    descricaoCurta: "Strogonoff de frango com batata palha (500g)",
-    descricaoDetalhada:
-        "Strogonoff cremoso de peito de frango com creme de leite fresco e champignon (250g), acompanhado de Arroz branco bem soltinho (200g) e Batata palha crocante embalada separadamente para não murchar (50g).",
-    quantidade: "10 unidades",
-    dataValidade: "11/03/2026",
-    doadorNome: "Bistro e Cia",
-    distancia: "0.8 km de distância",
-    imagem: "/doacoes/marmita-strog.png",
-  },
-  {
-    id: "4",
-    nome: "Marmita de Macarrão",
-    descricaoCurta: "Macarrão ao molho vermelho (300g)",
-    descricaoDetalhada:
-        "Massa Spaghetti (180g): Espaguete de grano duro cozido al dente, fios longos envolvidos perfeitamente no molho.\n\nMolho Bolognesa Artesanal (110g): Carne moída bovina de primeira refogada com alho, cebola, tomates maduros, folhas de manjericão e azeite extravirgem.\n\nToque Final (10g): Sachê separado de queijo parmesão ralado para polvilhar na hora de consumir.",
-    quantidade: "12 unidades",
-    dataValidade: "10/03/2026",
-    doadorNome: "Cantina Bella Italia",
-    distancia: "1.5 km de distância",
-    imagem: "/doacoes/marmita-macarrao.png",
-  },
-  {
-    id: "5",
-    nome: "Cesta de Hortaliças Frescas",
-    descricaoCurta: "Alface, tomate orgânico e cenoura (1.5kg)",
-    descricaoDetalhada:
-        "Cesta verde fresquinha colhida no dia! Contém 2 pés de alface crespa higienizados, 1kg de tomate italiano maduro, 500g de cenouras crocantes e um maço de cheiro-verde.",
-    quantidade: "8 cestas",
-    dataValidade: "14/03/2026",
-    doadorNome: "Horta Comunitária Esperança",
-    distancia: "3.1 km de distância",
-    imagem: "/doacoes/cesta-hortalicas.png",
-  },
-  {
-    id: "6",
-    nome: "Lote de Pães Franceses",
-    descricaoCurta: "Pães crocantes assados na manhã (Lote com 10un)",
-    descricaoDetalhada:
-        "Saco com 10 pães franceses quentinhos, assados na primeira fornada do dia. Ideais para consumo imediato no café ou produção de lanches.",
-    quantidade: "15 lotes",
-    dataValidade: "09/03/2026",
-    doadorNome: "Padaria Pão D'Ouro",
-    distancia: "0.5 km de distância",
-    imagem: "/doacoes/pao-frances.png",
-  },
-  {
-    id: "7",
-    nome: "Kit Frutas Variadas",
-    descricaoCurta: "Maçãs, bananas nanicas e laranjas pera (2kg)",
-    descricaoDetalhada:
-        "Combinação nutritiva de frutas selecionadas contendo 5 maçãs fuji, 1 dúzia de bananas nanicas maduras e 6 laranjas pera suculentas.",
-    quantidade: "10 kits",
-    dataValidade: "13/03/2026",
-    doadorNome: "Sacolão da Economia",
-    distancia: "1.8 km de distância",
-    imagem: "/doacoes/frutas-variadas.png",
-  },
-  {
-    id: "8",
-    nome: "Sopa Nutritiva de Legumes",
-    descricaoCurta: "Caldo de mandioca com carne desfiada (400ml)",
-    descricaoDetalhada:
-        "Sopa quente e reconfortante feita com base de mandioca, mandioquinha, cenoura, chuchu e farta quantidade de carne bovina desfiada.",
-    quantidade: "25 potes",
-    dataValidade: "10/03/2026",
-    doadorNome: "Cozinha Solidária",
-    distancia: "2.0 km de distância",
-    imagem: "/doacoes/arroz-feijao.png",
-  },
-];
-
-const linksPaginas = ["Tela Inicial", "Sobre Nós", "Doações"];
-const linksContato = ["Suporte 24h", "Parcerias", "Imprensa"];
-
-
-
-// ==================== MODAL DE DETALHES DO PRODUTO ====================
+// ==================== MODAL DE DETALHES ====================
 
 interface ModalProps {
   alimento: Alimento | null;
@@ -165,17 +84,20 @@ const ModalDetalhesAlimento: React.FC<ModalProps> = ({ alimento, onClose }) => {
   const handleIrParaPerfilDoador = (e: React.MouseEvent) => {
     e.stopPropagation();
     onClose();
-    // Se o objeto 'alimento' possuir ID do doador, você pode adaptar para: `/perfil-doador/${alimento.doadorId}`
     router.push("/perfil-doador");
   };
 
+  const nomeDoador = alimento.doador?.usuario?.nome || "Doador FoodCare";
+  const textoDistancia = alimento.distancia !== undefined && alimento.distancia !== null
+      ? `${alimento.distancia.toFixed(1)} km de distância`
+      : "Distância não calculada";
+
   return (
       <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn overflow-y-auto"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto animate-fadeIn"
           onClick={onClose}
           role="dialog"
           aria-modal="true"
-          aria-labelledby="titulo-modal"
       >
         <div
             className="relative w-full max-w-lg bg-white rounded-3xl border border-[#e8eaaf] shadow-2xl overflow-hidden my-8 transition-all"
@@ -183,7 +105,7 @@ const ModalDetalhesAlimento: React.FC<ModalProps> = ({ alimento, onClose }) => {
         >
           <button
               onClick={onClose}
-              className="absolute top-4 left-4 z-10 p-2.5 bg-white/90 hover:bg-white text-gray-700 rounded-full shadow-md transition-transform hover:scale-105 border border-gray-200 cursor-pointer"
+              className="absolute top-4 left-4 z-10 p-2.5 bg-white/90 hover:bg-white text-gray-700 rounded-full shadow-md border border-gray-200 cursor-pointer"
               aria-label="Fechar janela"
           >
             <X className="w-5 h-5 text-[#2b2e23]" />
@@ -191,54 +113,46 @@ const ModalDetalhesAlimento: React.FC<ModalProps> = ({ alimento, onClose }) => {
 
           <div className="relative w-full h-64 bg-gray-100 flex items-center justify-center overflow-hidden">
             <img
-                src={alimento.imagem}
+                src={imagens[Number(alimento.idCategoria)]}
                 alt={alimento.nome}
                 className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
             <span className="absolute bottom-3 right-3 bg-white/95 text-[#2b2e23] font-semibold text-xs px-3 py-1.5 rounded-full shadow-xs flex items-center gap-1.5">
             <Utensils className="w-3.5 h-3.5 text-[#bf211e]" />
-              {alimento.quantidade}
+              {alimento.qntd || alimento.quantidade || "1 unidade"}
           </span>
           </div>
 
           <div className="p-6 flex flex-col gap-5">
             <div className="text-center bg-[#fdfdf7] p-4 rounded-2xl border border-[#e8eaaf]">
-              <h2
-                  id="titulo-modal"
-                  className="font-serif font-bold text-2xl text-[#2b2e23]"
-              >
+              <h2 className="font-serif font-bold text-2xl text-[#2b2e23]">
                 {alimento.nome}
               </h2>
               <div className="flex items-center justify-center gap-1.5 text-xs text-gray-600 mt-1.5 flex-wrap">
                 <MapPin className="w-4 h-4 text-[#bf211e] shrink-0" />
                 <span className="font-semibold text-[#2b2e23]">Doador:</span>
-
-                {/* Nome do doador clicável no cabeçalho */}
                 <button
                     type="button"
                     onClick={handleIrParaPerfilDoador}
                     className="font-bold text-[#bf211e] hover:underline cursor-pointer bg-transparent border-0 p-0 text-xs"
                 >
-                  {alimento.doadorNome}
+                  {nomeDoador}
                 </button>
-
-                <span>({alimento.distancia})</span>
+                <span>({textoDistancia})</span>
               </div>
             </div>
 
             <div className="w-full rounded-2xl overflow-hidden border border-gray-200 relative bg-slate-100 h-32 flex flex-col justify-between p-3">
-              <div className="absolute inset-0 opacity-20 bg-[radial-[#bf211e]_1px,transparent_1px] [background-size:16px_16px]" />
               <div className="relative z-10 flex items-center justify-between">
-              <span className="bg-white/90 text-[11px] font-bold text-gray-700 px-2.5 py-1 rounded-md shadow-xs border border-gray-200">
+              <span className="bg-white/90 text-[11px] font-bold text-gray-700 px-2.5 py-1 rounded-md border border-gray-200">
                 Ponto de Retirada
               </span>
                 <span className="bg-[#bf211e] text-white text-[11px] font-medium px-2 py-0.5 rounded-md">
-                Validade: {alimento.dataValidade}
+                Validade: {alimento.validade || "Não informada"}
               </span>
               </div>
 
-              {/* Bloco do Doador no mapa clicável */}
               <button
                   type="button"
                   onClick={handleIrParaPerfilDoador}
@@ -249,7 +163,7 @@ const ModalDetalhesAlimento: React.FC<ModalProps> = ({ alimento, onClose }) => {
                 </div>
                 <div className="overflow-hidden">
                   <p className="text-xs font-bold text-[#2b2e23] group-hover:text-[#bf211e] group-hover:underline truncate">
-                    {alimento.doadorNome}
+                    {nomeDoador}
                   </p>
                   <p className="text-[11px] text-gray-500">Clique para ver o perfil público</p>
                 </div>
@@ -261,13 +175,13 @@ const ModalDetalhesAlimento: React.FC<ModalProps> = ({ alimento, onClose }) => {
                 Descrição do Produto:
               </h3>
               <p className="text-xs sm:text-sm text-gray-600 leading-relaxed whitespace-pre-line bg-[#f8f8f6] p-4 rounded-xl border border-gray-100 max-h-40 overflow-y-auto">
-                {alimento.descricaoDetalhada}
+                {alimento.descricao || "Sem descrição detalhada."}
               </p>
             </div>
 
             <button
                 onClick={handleQueroEsteProduto}
-                className="w-full py-3.5 bg-[#bf211e] hover:bg-[#a91d1a] text-white font-bold text-base rounded-xl transition-all shadow-md hover:shadow-lg active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2"
+                className="w-full py-3.5 bg-[#bf211e] hover:bg-[#a91d1a] text-white font-bold text-base rounded-xl transition-all shadow-md active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2"
             >
               <span>Quero este produto</span>
               <ChevronRight className="w-5 h-5" />
@@ -278,30 +192,95 @@ const ModalDetalhesAlimento: React.FC<ModalProps> = ({ alimento, onClose }) => {
   );
 };
 
-// ==================== LISTA DE CARDS E FEED ====================
+// ==================== SEÇÃO PRINCIPAL ====================
 
 const SecaoFeedReceptor = () => {
-  const [alimentos] = useState<Alimento[]>(alimentosMock);
+  const [alimentos, setAlimentos] = useState<Alimento[]>([]);
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [categoriaSelecionada, setCategoriaSelecionada] = useState<string | number>("todos");
+
   const [busca, setBusca] = useState("");
+  const [carregando, setCarregando] = useState(true);
+  const [erroLocalizacao, setErroLocalizacao] = useState(false);
   const [alimentoSelecionado, setAlimentoSelecionado] = useState<Alimento | null>(null);
 
-  const alimentosFiltrados = alimentos.filter(
-      (item) =>
-          item.nome.toLowerCase().includes(busca.toLowerCase()) ||
-          item.descricaoCurta.toLowerCase().includes(busca.toLowerCase())
-  );
+
+  useEffect(() => {
+    const carregarCategorias = async () => {
+      try {
+        const dados = await categoriaService.obterTodas();
+        setCategorias(dados);
+      } catch (err) {
+        console.error("Erro ao carregar categorias:", err);
+      }
+    };
+    carregarCategorias();
+  }, []);
+
+
+  useEffect(() => {
+    const carregarFeed = async () => {
+      setCarregando(true);
+      setErroLocalizacao(false);
+
+      const idUsuario = localStorage.getItem("idUsuario");
+      if (!idUsuario) {
+        setCarregando(false);
+        return;
+      }
+
+      try {
+        const lista: Alimento[] = await alimentoService.obterFeedPorUsuario(idUsuario);
+
+        if (categoriaSelecionada === "recomendados") {
+          const recomendados = lista.filter(
+              (item) => item.distancia !== undefined && item.distancia !== null && item.distancia <= 3.0
+          );
+          setAlimentos(recomendados);
+        } else if (categoriaSelecionada === "todos") {
+          setAlimentos(lista);
+        } else {
+
+          const idCat = Number(categoriaSelecionada);
+          setAlimentos(lista.filter((item) => item.idCategoria === idCat));
+        }
+      } catch (error: unknown) {
+        if (isAxiosError(error) && error.response?.status === 400) {
+          if (categoriaSelecionada === "recomendados") {
+            setErroLocalizacao(true);
+          }
+          setAlimentos([]);
+        } else {
+          console.error("Erro ao carregar o feed:", error);
+          setAlimentos([]);
+        }
+      } finally {
+        setCarregando(false);
+      }
+    };
+
+    carregarFeed();
+  }, [categoriaSelecionada]);
+
+
+  const alimentosFiltrados = alimentos.filter((item) => {
+    const termo = busca.toLowerCase();
+    const nome = item.nome?.toLowerCase() || "";
+    const desc = (item.descricao || "").toLowerCase();
+    return nome.includes(termo) || desc.includes(termo);
+  });
 
   return (
-      <section aria-label="Alimentos disponíveis para doação" className="w-full bg-[#f8f8f6] py-10 px-4 md:px-12 flex flex-col items-center min-h-[calc(100vh-129px)]">
+      <section className="w-full bg-[#f8f8f6] py-10 px-4 md:px-12 flex flex-col items-center min-h-[calc(100vh-129px)]">
         <div className="w-full max-w-[1296px] flex flex-col items-center gap-8">
 
-          {/* Título e Pesquisa */}
+          {/* Cabeçalho */}
           <div className="flex flex-col items-center text-center gap-4 w-full">
             <h1 className="font-serif font-bold text-3xl sm:text-5xl text-[#2b2e23] tracking-tight">
               Alimentos disponíveis
             </h1>
 
-            {/* Campo de Busca de Alimentos */}
+            {/* Campo de Busca */}
             <div className="relative w-full max-w-md mt-2">
               <input
                   type="text"
@@ -320,42 +299,107 @@ const SecaoFeedReceptor = () => {
                   </button>
               )}
             </div>
+
+            {/* Seletor de Categorias / Recomendados / Todos */}
+            <div className="w-full max-w-3xl overflow-x-auto py-2 px-4 no-scrollbar">
+              <div className="flex items-center gap-2 w-max mx-auto">
+                {/* Opção TODOS */}
+                <button
+                    type="button"
+                    onClick={() => setCategoriaSelecionada("todos")}
+                    className={`px-4 py-2 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                        categoriaSelecionada === "todos"
+                            ? "bg-[#2b2e23] text-white shadow-md"
+                            : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-200"
+                    }`}
+                >
+                  Todos
+                </button>
+
+                {/* Opção RECOMENDADOS */}
+                <button
+                    type="button"
+                    onClick={() => setCategoriaSelecionada("recomendados")}
+                    className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                        categoriaSelecionada === "recomendados"
+                            ? "bg-[#bf211e] text-white shadow-md"
+                            : "bg-white text-[#bf211e] border border-[#bf211e]/30 hover:bg-[#bf211e]/10"
+                    }`}
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  Recomendados
+                </button>
+
+                {/* Categorias Dinâmicas da tabela Categoria */}
+                {categorias.map((cat) => (
+                    <button
+                        key={cat.idCategoria}
+                        type="button"
+                        onClick={() => setCategoriaSelecionada(cat.idCategoria)}
+                        className={`px-4 py-2 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                            categoriaSelecionada === cat.idCategoria
+                                ? "bg-[#2b2e23] text-white shadow-md"
+                                : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-200"
+                        }`}
+                    >
+                      {cat.nome}
+                    </button>
+                ))}
+              </div>
+            </div>
           </div>
 
-          {/* Grid de Alimentos */}
-          {alimentosFiltrados.length === 0 ? (
+          {/* Estado de Carregamento */}
+          {carregando ? (
+              <div className="py-20 flex flex-col items-center gap-3 text-gray-500">
+                <Loader2 className="w-8 h-8 animate-spin text-[#bf211e]" />
+                <p className="text-sm font-semibold">Buscando alimentos...</p>
+              </div>
+          ) : erroLocalizacao ? (
+              /* Alerta caso a API retorne 400 em Recomendados */
+              <div className="w-full max-w-md bg-amber-50 border border-amber-200 rounded-3xl p-6 text-center flex flex-col items-center gap-3 my-8 shadow-xs">
+                <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center text-amber-700">
+                  <MapPinOff className="w-6 h-6" />
+                </div>
+                <h3 className="font-bold text-[#2b2e23] text-lg">
+                  Localização necessária
+                </h3>
+                <p className="text-xs text-gray-600 leading-relaxed">
+                  Você precisa cadastrar sua localização no perfil para visualizar as doações recomendadas.
+                </p>
+              </div>
+          ) : alimentosFiltrados.length === 0 ? (
               <div className="py-16 text-center text-gray-500 text-base">
-                Nenhum alimento encontrado para "{busca}".
+                Nenhum alimento encontrado para esta seleção.
               </div>
           ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full pt-4">
+              /* Grid de Alimentos */
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full pt-2">
                 {alimentosFiltrados.map((alimento) => (
                     <article
-                        key={alimento.id}
+                        key={alimento.idAlimento}
                         onClick={() => setAlimentoSelecionado(alimento)}
                         className="group bg-white rounded-2xl border border-gray-200 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col overflow-hidden cursor-pointer hover:-translate-y-1"
                     >
-                      {/* Imagem do Card */}
                       <div className="relative w-full h-48 bg-gray-100 overflow-hidden">
                         <img
-                            src={alimento.imagem}
+                            src={imagens[Number(alimento.idCategoria)]}
                             alt={alimento.nome}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                             loading="lazy"
                         />
-                        <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-xs text-[#2b2e23] text-xs font-semibold px-2.5 py-1 rounded-full shadow-xs">
-                          {alimento.quantidade}
+                        <div className="absolute top-3 right-3 bg-white/90 text-[#2b2e23] text-xs font-semibold px-2.5 py-1 rounded-full shadow-xs">
+                          {alimento.qntd || alimento.quantidade || "1 un"}
                         </div>
                       </div>
 
-                      {/* Conteúdo do Card */}
                       <div className="p-5 flex flex-col flex-1 justify-between items-center text-center gap-3">
                         <div className="flex flex-col gap-1.5 w-full">
                           <h3 className="font-bold text-lg text-[#2b2e23] group-hover:text-[#bf211e] transition-colors truncate">
                             {alimento.nome}
                           </h3>
                           <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">
-                            {alimento.descricaoCurta}
+                            {alimento.descricao || "Sem descrição"}
                           </p>
                         </div>
 
@@ -376,7 +420,6 @@ const SecaoFeedReceptor = () => {
           )}
         </div>
 
-        {/* Modal Popup */}
         <ModalDetalhesAlimento
             alimento={alimentoSelecionado}
             onClose={() => setAlimentoSelecionado(null)}
@@ -384,8 +427,6 @@ const SecaoFeedReceptor = () => {
       </section>
   );
 };
-
-
 
 // ==================== COMPONENTE PRINCIPAL ====================
 

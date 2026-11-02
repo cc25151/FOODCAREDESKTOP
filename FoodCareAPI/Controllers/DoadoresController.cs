@@ -26,12 +26,12 @@ public class DoadoresController : ControllerBase
         if (doador is null)
             return NotFound("Doador não encontrado.");
         
-        var endereco = $"{doador.usuario.rua}, {doador.usuario.numero} - {doador.usuario.bairro}, {doador.usuario.cidade}";
+        var endereco = $"{doador.usuario?.rua}, {doador.usuario?.numero} - {doador.usuario?.bairro}, {doador.usuario?.cidade}";
 
         return Ok(new 
         {
             doador.idDoador,
-            doador.usuario.nome,
+            doador.usuario?.nome,
             doador.idUsuario,
             doador.pontuacao,
             endereco
