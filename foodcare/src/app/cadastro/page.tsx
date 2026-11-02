@@ -112,7 +112,7 @@ export default function Cadastro() {
 
     } catch (error: unknown) {
       if (isAxiosError(error)) {
-        if (error.response?.status === 401) {
+        if (error.response?.status === 400) {
           setMensagem("Dados já cadastrados.");
         } else {
           setMensagem("Erro ao conectar com o servidor. Tente novamente mais tarde.");

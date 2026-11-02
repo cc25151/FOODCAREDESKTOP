@@ -6,5 +6,5 @@ public class Doador{
         public decimal? pontuacao { get; set; }
         public TimeOnly? horarioInicial { get; set; }
         public TimeOnly? horarioFinal { get; set; }
-        public Usuario usuario { get; set; } = null!;
+        public Usuario? usuario { get; set; } = null!;
     }
