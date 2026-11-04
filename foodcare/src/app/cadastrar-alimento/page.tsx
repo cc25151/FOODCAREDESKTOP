@@ -1,41 +1,20 @@
 'use client';
 
-import { useState, FormEvent } from "react";
+import { useState, useEffect, FormEvent } from "react";
 import Footer from "@/components/Rodape";
 import { useRouter } from "next/navigation";
 import Topo from "@/components/Cabecalho";
 import { ArrowLeft, Calendar, ChevronDown, Tag } from "lucide-react";
 import { alimentoService } from "@/services/alimentoService";
+import { categoriaService } from "@/services/categoriaService"; 
 
 // ==================== DADOS E CONSTANTES ====================
 
-const CATEGORIAS_DISPONIVEIS = [
-  {
-    idCategoria: 1,
-    nome: "Marmitas e Refeições Prontas",
-    imagem: "marmita-carne.png"
-  },
-  {
-    idCategoria: 2,
-    nome: "Padaria e Confeitaria",
-    imagem: "padaria.png"
-  },
-  {
-    idCategoria: 3,
-    nome: "Frutas e Hortifruti",
-    imagem: "frutas-variadas.png"
-  },
-  {
-    idCategoria: 4,
-    nome: "Alimentos Embalados",
-    imagem: "embalados.png"
-  },
-  {
-    idCategoria: 9,
-    nome: "Enlatados e Conservas",
-    imagem: "enlatados.png"
-  }
-];
+// Criando um tipo para a Categoria que vem do banco
+type Categoria = {
+  idCategoria: number;
+  nome: string;
+};
 
 type FormValues = {
   foodName: string;
@@ -57,10 +36,27 @@ const initialFormValues: FormValues = {
 
 const SecaoCadastroAlimento = () => {
   const router = useRouter();
+  
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
+  
   const [formValues, setFormValues] = useState<FormValues>(initialFormValues);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+
+  useEffect(() => {
+    const carregarCategorias = async () => {
+      try {
+        const dados = await categoriaService.obterTodas();
+        setCategorias(dados);
+      } catch (error) {
+        console.error("Erro ao carregar categorias:", error);
+        setErrorMessage("Não foi possível carregar as categorias.");
+      }
+    };
+
+    carregarCategorias();
+  }, []);
 
   const updateField = (field: keyof FormValues, value: string): void => {
     setFormValues((currentValues) => ({
@@ -191,13 +187,15 @@ const SecaoCadastroAlimento = () => {
               className="w-full px-4 py-3 bg-[#f8f8f6] rounded-lg border border-gray-300 text-[#2b2e23] text-sm focus:outline-none focus:ring-2 focus:ring-[#bf211e] appearance-none cursor-pointer pr-10"
             >
               <option value="" disabled hidden>
-                Selecione uma categoria...
+                {categorias.length === 0 ? "Carregando categorias..." : "Selecione uma categoria..."}
               </option>
-              {CATEGORIAS_DISPONIVEIS.map((cat) => (
+              
+              {categorias.map((cat) => (
                 <option key={cat.idCategoria} value={cat.idCategoria} className="text-[#2b2e23] py-1">
                   #{cat.idCategoria} — {cat.nome}
                 </option>
               ))}
+
             </select>
             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
               <ChevronDown className="w-4 h-4" />
