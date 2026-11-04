@@ -26,6 +26,7 @@ public class DoadoresController : ControllerBase
         if (doador is null)
             return NotFound("Doador não encontrado.");
         
+        // Corrigido o erro de quebra de linha na string interpolada
         var endereco = $"{doador.usuario?.rua}, {doador.usuario?.numero} - {doador.usuario?.bairro}, {doador.usuario?.cidade}";
 
         return Ok(new 
@@ -35,6 +36,33 @@ public class DoadoresController : ControllerBase
             doador.idUsuario,
             doador.pontuacao,
             endereco
+        });
+    }
+
+
+    [HttpGet("publico/{idDoador:int}")]
+    public async Task<IActionResult> ObterPerfilPublico(int idDoador)
+    {
+        var doador = await _bancoDeDados.Doador
+            .Include(d => d.usuario)
+            .FirstOrDefaultAsync(d => d.idDoador == idDoador || d.idUsuario == idDoador);
+
+        if (doador == null) return NotFound("Doador não encontrado.");
+
+        var totalDoacoes = await _bancoDeDados.Alimento
+            .CountAsync(a => a.idDoador == doador.idDoador);
+
+        return Ok(new
+        {
+            nome = doador.usuario?.nome,
+            email = doador.usuario?.email,
+            cidade = doador.usuario?.cidade,
+            bairro = doador.usuario?.bairro,
+            tipoPessoa = doador.usuario?.tipoPessoa,
+            pontuacao = doador.pontuacao,
+            totalAvaliacoes = 0, 
+            totalDoacoes = totalDoacoes,
+            avaliacoes = new List<object>()
         });
     }
 

@@ -7,6 +7,12 @@ export const doadorService = {
         return response.data;
     },
 
+    // GET: /doadores/publico/{idDoador}
+    obterPerfilPublico: async (idDoador) => {
+        const response = await api.get(`/doadores/publico/${idDoador}`);
+        return response.data;
+    },
+
     // POST: /doadores/cadastro
     cadastrar: async (dadosDoador) => {
         const response = await api.post('/doadores/cadastro', dadosDoador);
