@@ -37,6 +37,8 @@ export default function Login() {
       localStorage.setItem('idUsuario', resp.idUsuario);
       localStorage.setItem('tipoUsuario', resp.tipoUsuario);
 
+      if(resp.nome) localStorage.setItem('nomeUsuario', resp.nome);
+
       switch (resp.tipoUsuario) {
         case "receptor":
           router.push("/feed-receptor");

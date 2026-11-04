@@ -57,23 +57,6 @@ public class UsuariosController : ControllerBase
         });
     }
 
-    [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] RequisicaoLoginDTO dadosLogin)
-    {
-        var usuario = await _bancoDeDados.Usuario.FirstOrDefaultAsync(u => u.email == dadosLogin.email);
-
-        if (usuario == null || !BCrypt.Net.BCrypt.Verify(dadosLogin.senha, usuario.senha))
-        {
-            return Unauthorized("E-mail ou senha inválidos.");
-        }
-
-        return Ok(new 
-        { 
-            idUsuario = usuario.idUsuario.ToString(), 
-            tipoUsuario = usuario.tipoPessoa.ToLower() 
-        });
-    }
-
     [HttpPatch("completar-perfil/{id:int}")]
     public async Task<IActionResult> CompletarPerfil(int id, [FromBody] Usuario dadosPerfil)
     {
