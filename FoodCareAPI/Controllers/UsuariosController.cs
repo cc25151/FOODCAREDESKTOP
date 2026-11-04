@@ -69,7 +69,6 @@ public class UsuariosController : ControllerBase
 
         return Ok(new 
         { 
-            token = "token-ficticio-jwt", 
             idUsuario = usuario.idUsuario.ToString(), 
             tipoUsuario = usuario.tipoPessoa.ToLower() 
         });
