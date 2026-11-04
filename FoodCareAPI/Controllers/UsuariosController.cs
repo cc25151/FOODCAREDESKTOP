@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using FoodCareAPI.Data;
 using FoodCareAPI.Models;
+using FoodCareAPI.DTOs;
 
 namespace FoodCareAPI.Controllers;
 
@@ -53,6 +54,24 @@ public class UsuariosController : ControllerBase
         { 
             usuario.idUsuario, 
             mensagem = "Cadastro realizado! Complete seu perfil para doar ou receber." 
+        });
+    }
+
+    [HttpPost("login")]
+    public async Task<IActionResult> Login([FromBody] RequisicaoLoginDTO dadosLogin)
+    {
+        var usuario = await _bancoDeDados.Usuario.FirstOrDefaultAsync(u => u.email == dadosLogin.email);
+
+        if (usuario == null || !BCrypt.Net.BCrypt.Verify(dadosLogin.senha, usuario.senha))
+        {
+            return Unauthorized("E-mail ou senha inválidos.");
+        }
+
+        return Ok(new 
+        { 
+            token = "token-ficticio-jwt", 
+            idUsuario = usuario.idUsuario.ToString(), 
+            tipoUsuario = usuario.tipoPessoa.ToLower() 
         });
     }
 
