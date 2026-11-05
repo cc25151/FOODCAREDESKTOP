@@ -31,7 +31,9 @@ public class DoadoresController : ControllerBase
         return Ok(new 
         {
             doador.idDoador,
-            doador.usuario?.nome,
+            nome = doador.usuario?.nome,
+            email = doador.usuario?.email,
+            tipo = doador.usuario?.tipoPessoa,
             doador.idUsuario,
             doador.pontuacao,
             endereco

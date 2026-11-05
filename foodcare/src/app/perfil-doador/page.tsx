@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Topo from "@/components/Cabecalho";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   User,
   Star,
@@ -183,7 +183,8 @@ const SecaoRodape = () => {
 
 const PerfilDoador = () => {
   const router = useRouter();
-
+  const searchParams = useSearchParams();
+  const idDoador = searchParams.get("id");
   const [perfil, setPerfil] = useState<PerfilPublicoDoador>({
     nome: "",
     subtitulo: "Parceiro ativo no combate ao desperdício e na distribuição de esperança.",
@@ -195,11 +196,37 @@ const PerfilDoador = () => {
   const [avaliacoes, setAvaliacoes] = useState<AvaliacaoReceptor[]>([]);
   const [carregando, setCarregando] = useState(false);
 
-  useEffect(() => {
+useEffect(() => {
+    if(!idDoador) return;
     const carregarPerfilPublicoAPI = async () => {
       setCarregando(true);
       try {
-        // Chamada de API para buscar perfil do doador e suas avaliações
+        // Ajustado para /doadores (no plural) conforme sua Controller
+        const resposta = await fetch(`http://localhost:5042/doadores/${idDoador}`);
+        
+        if (!resposta.ok) {
+          throw new Error("Falha ao buscar dados do doador");
+        }
+        
+        // CÓDIGO MOVIDO PARA FORA DO IF:
+        const dadosDoador = await resposta.json();
+        
+        setPerfil({
+          nome: dadosDoador.nome || "Doador",
+          subtitulo: "Parceiro ativo no combate ao desperdício e na distribuição de esperança.",
+          mediaEstrelas: dadosDoador.pontuacao ? dadosDoador.pontuacao.toFixed(1) : "5.0", 
+          totalAvaliacoesTexto: `${dadosDoador.totalAvaliacoes || 0} avaliações`,
+          detalhes: [
+            { label: "NOME DO DOADOR", value: dadosDoador.nome || "—" },
+            { label: "LOCALIZAÇÃO", value: dadosDoador.endereco || "—" },
+            { label: "TOTAL DE AVALIAÇÕES", value:"0" },
+            { label: "TIPO", value: dadosDoador.tipo === "PJ" ? "Pessoa Jurídica" : "Pessoa Física" },
+            { label: "TEMPO NO APLICATIVO", value: "Membro recente"},
+            { label: "E-MAIL DE CONTATO", value: dadosDoador.email || "—" },
+            { label: "DOAÇÕES REALIZADAS", value: "0" },
+          ],
+        });
+        
       } catch (error) {
         console.error(error);
       } finally {
@@ -208,8 +235,7 @@ const PerfilDoador = () => {
     };
 
     carregarPerfilPublicoAPI();
-  }, []);
-
+  }, [idDoador]);
   return (
       <div className="flex min-h-screen w-full flex-col bg-[#f8f8f6] text-[#2b2e23] font-sans">
         <Topo />
