@@ -26,16 +26,22 @@ export const doacaoService = {
     },
 
     // POST: /doacoes
-    cadastrar: async (novaDoacao) => {
-        const response = await api.post('/doacoes', novaDoacao);
+    cadastrar: async (dadosDoacao) => {
+        const response = await api.post('/doacoes', dadosDoacao);
         return response.data;
     },
 
-    // PATCH: /doacoes/{id}/finalizar?nota={nota}
-    finalizar: async (idDoacao, nota) => {
-        const response = await api.patch(`/doacoes/${idDoacao}/finalizar`, null, {
-            params: { nota }
-        });
+    finalizar: async (idDoacao, idDoador, nota) => {
+        const params = new URLSearchParams();
+        if (idDoador) params.append('idDoador', idDoador);
+        if (nota) params.append('nota', nota);
+
+        const urlParams = params.toString();
+        const endpoint = urlParams
+            ? `/doacoes/${idDoacao}/finalizar?${urlParams}`
+            : `/doacoes/${idDoacao}/finalizar`;
+
+        const response = await api.patch(endpoint);
         return response.data;
-    }
+    },
 };
