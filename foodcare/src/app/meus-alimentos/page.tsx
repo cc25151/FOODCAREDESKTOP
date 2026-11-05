@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { alimentoService } from '@/services/alimentoService';
 import Topo from "@/components/Cabecalho";
 import Footer from "@/components/Rodape";
 import {
@@ -12,90 +13,63 @@ import {
   Loader2,
   CheckCircle2,
   AlertCircle,
+  PackageOpen,
 } from "lucide-react";
 
 // ==================== TIPOS E INTERFACES ====================
 
 export type ContribuicaoAlimento = {
-  id: string;
+  idAlimento: number;
   nome: string;
   descricao: string;
-  quantidade: number;
-  dataValidade: string;
-  imagem: string;
+  qntd: string | number;
+  validade: string;
+  idCategoria?: number;
+  nomeCategoria?: string;
+  imagem?: string;
 };
 
-
 interface ModalEditarAlimentoProps {
-  alimento: ContribuicaoAlimento | null;
+  alimento: ContribuicaoAlimento;
   onClose: () => void;
   onSalvar: (alimentoAtualizado: ContribuicaoAlimento) => Promise<void>;
 }
 
-// ==================== FUNÇÕES AUXILIARES ====================
+// ==================== MAPA DE IMAGENS POR CATEGORIA ====================
 
-const formatarDataExibicao = (dataISO: string): string => {
+const MAPA_IMAGENS_CATEGORIA: Record<number, string> = {
+  1: "/doacoes/marmita-carne.png",    // Marmitas e Refeições Prontas
+  2: "/doacoes/padaria.png",          // Padaria e Confeitaria
+  3: "/doacoes/frutas-variadas.png",  // Frutas e Hortifruti
+  4: "/doacoes/embalados.png",        // Alimentos Embalados
+  9: "/doacoes/enlatados.png",         // Enlatados e Conservas
+};
+
+const obterImagemLocal = (alimento: ContribuicaoAlimento): string => {
+  if (alimento.imagem) return alimento.imagem;
+  if (alimento.idCategoria && MAPA_IMAGENS_CATEGORIA[alimento.idCategoria]) {
+    return MAPA_IMAGENS_CATEGORIA[alimento.idCategoria];
+  }
+  return "/doacoes/embalados.png";
+};
+
+// ==================== FUNÇÕES AUXILIARES DE DATA ====================
+
+const formatarDataParaInput = (dataISO?: string): string => {
   if (!dataISO) return "";
-  const partes = dataISO.split("-");
+  return dataISO.split("T")[0]; // Retorna YYYY-MM-DD para <input type="date">
+};
+
+const formatarDataExibicao = (dataISO?: string): string => {
+  if (!dataISO) return "Não informada";
+  const apenasData = dataISO.split("T")[0];
+  const partes = apenasData.split("-");
   if (partes.length === 3) {
     const [ano, mes, dia] = partes;
     return `${dia}/${mes}/${ano}`;
   }
   return dataISO;
 };
-
-// ==================== DADOS E CONSTANTES ====================
-
-const contribuicoesIniciais: ContribuicaoAlimento[] = [
-  {
-    id: "1",
-    nome: "Marmita de Carne",
-    descricao: "Arroz, feijão, purê de batata, carne moída refogada e salada verde (500g)",
-    quantidade: 45,
-    dataValidade: "2026-03-12",
-    imagem: "/doacoes/marmita-carne.png",
-  },
-  {
-    id: "2",
-    nome: "Cesta de Hortaliças",
-    descricao: "Alface crespa, tomate italiano orgânico, cenoura fresca e brócolis do dia",
-    quantidade: 12,
-    dataValidade: "2026-03-10",
-    imagem: "/doacoes/cesta-hortalicas.png",
-  },
-  {
-    id: "3",
-    nome: "Pão Francês (50 unidades)",
-    descricao: "Pães crocantes fresquinhos, assados na primeira fornada da manhã",
-    quantidade: 150,
-    dataValidade: "2026-03-08",
-    imagem: "/doacoes/pao-frances.png",
-  },
-  {
-    id: "4",
-    nome: "Arroz com Feijão",
-    descricao: "Marmitas congeladas higienizadas de arroz agulhinha e feijão carioca (400g)",
-    quantidade: 60,
-    dataValidade: "2026-03-05",
-    imagem: "/doacoes/arroz-feijao.png",
-  },
-  {
-    id: "5",
-    nome: "Marmita de Frango",
-    descricao: "Arroz, feijão, frango grelhado, batata frita e salada (300g)",
-    quantidade: 30,
-    dataValidade: "2026-02-28",
-    imagem: "/doacoes/marmita-frango.png",
-  },
-  {
-    id: "6",
-    nome: "Frutas Variadas",
-    descricao: "Maçãs vermelhas, bananas nanicas, laranjas pera e mamão formosa higienizados",
-    quantidade: 15,
-    dataValidade: "2026-02-22",
-    imagem: "/doacoes/frutas-variadas.png",
-  },
-];
 
 // ==================== INTRODUÇÃO ====================
 
@@ -139,16 +113,19 @@ const ModalEditarAlimento: React.FC<ModalEditarAlimentoProps> = ({
                                                                    onClose,
                                                                    onSalvar,
                                                                  }) => {
-  const [formData, setFormData] = useState<ContribuicaoAlimento | null>(null);
+  const [formData, setFormData] = useState<ContribuicaoAlimento>(() => ({
+    idAlimento: alimento.idAlimento,
+    nome: alimento.nome || "",
+    descricao: alimento.descricao || "",
+    qntd: alimento.qntd || "",
+    validade: formatarDataParaInput(alimento.validade),
+    idCategoria: alimento.idCategoria,
+    nomeCategoria: alimento.nomeCategoria,
+    imagem: alimento.imagem,
+  }));
+
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState("");
-
-  useEffect(() => {
-    if (alimento) {
-      setFormData({ ...alimento });
-      setErro("");
-    }
-  }, [alimento]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -158,20 +135,19 @@ const ModalEditarAlimento: React.FC<ModalEditarAlimentoProps> = ({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onClose, salvando]);
 
-  if (!alimento || !formData) return null;
-
   const handleChange = (
       e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    const { name, value, type } = e.target;
-    setFormData((prev) => {
-      if (!prev) return null;
-      if (type === "number") {
-        const num = parseInt(value, 10);
-        return { ...prev, [name]: isNaN(num) ? 0 : num };
-      }
-      return { ...prev, [name]: value };
-    });
+    const { name, value } = e.target;
+
+    if (name === "qntd") {
+      // Permite apenas dígitos numéricos
+      const valorApenasNumeros = value.replace(/\D/g, "");
+      setFormData((prev) => ({ ...prev, qntd: valorApenasNumeros }));
+      return;
+    }
+
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -182,8 +158,12 @@ const ModalEditarAlimento: React.FC<ModalEditarAlimentoProps> = ({
     try {
       await onSalvar(formData);
       onClose();
-    } catch (err: any) {
-      setErro(err.message || "Erro ao salvar alterações do alimento.");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setErro(err.message);
+      } else {
+        setErro("Erro ao salvar alterações do alimento.");
+      }
     } finally {
       setSalvando(false);
     }
@@ -256,37 +236,36 @@ const ModalEditarAlimento: React.FC<ModalEditarAlimentoProps> = ({
 
             <div className="flex flex-col gap-1">
               <label
-                  htmlFor="quantidade"
+                  htmlFor="qntd"
                   className="text-xs font-bold text-gray-500 uppercase tracking-wider"
               >
-                Quantidade (Unidades / Lotes)
+                Quantidade (somente números)
               </label>
               <input
-                  id="quantidade"
-                  name="quantidade"
-                  type="number"
-                  min="1"
-                  step="1"
-                  value={formData.quantidade}
+                  id="qntd"
+                  name="qntd"
+                  type="text"
+                  inputMode="numeric"
+                  value={formData.qntd}
                   onChange={handleChange}
                   required
                   className="w-full bg-[#f4f4f1] border border-gray-200/80 rounded-2xl px-4 py-3 text-sm text-[#2b2e23] font-medium focus:outline-none focus:border-[#2b2e23] focus:bg-white transition-all"
-                  placeholder="Informe a quantidade numérica"
+                  placeholder="Ex: 10"
               />
             </div>
 
             <div className="flex flex-col gap-1">
               <label
-                  htmlFor="dataValidade"
+                  htmlFor="validade"
                   className="text-xs font-bold text-gray-500 uppercase tracking-wider"
               >
                 Data de Validade
               </label>
               <input
-                  id="dataValidade"
-                  name="dataValidade"
+                  id="validade"
+                  name="validade"
                   type="date"
-                  value={formData.dataValidade}
+                  value={formData.validade}
                   onChange={handleChange}
                   required
                   className="w-full bg-[#f4f4f1] border border-gray-200/80 rounded-2xl px-4 py-3 text-sm text-[#2b2e23] font-medium focus:outline-none focus:border-[#2b2e23] focus:bg-white transition-all cursor-pointer"
@@ -330,29 +309,54 @@ const ModalEditarAlimento: React.FC<ModalEditarAlimentoProps> = ({
 
 interface SecaoHistoricoProps {
   alimentos: ContribuicaoAlimento[];
+  carregando: boolean;
   onEditarClick: (alimento: ContribuicaoAlimento) => void;
 }
 
 const SecaoHistoricoContribuicoes: React.FC<SecaoHistoricoProps> = ({
                                                                       alimentos,
+                                                                      carregando,
                                                                       onEditarClick,
                                                                     }) => {
+  if (carregando) {
+    return (
+        <div className="py-20 flex flex-col items-center justify-center gap-3 text-gray-500 w-full">
+          <Loader2 className="w-8 h-8 animate-spin text-[#bf211e]" />
+          <p className="text-sm font-semibold">Carregando seus alimentos...</p>
+        </div>
+    );
+  }
+
+  if (alimentos.length === 0) {
+    return (
+        <div className="py-16 px-6 flex flex-col items-center justify-center text-center gap-3 w-full">
+          <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center text-gray-400">
+            <PackageOpen className="w-7 h-7" />
+          </div>
+          <h3 className="font-bold text-[#2b2e23] text-lg">Nenhum alimento cadastrado</h3>
+          <p className="text-sm text-gray-500 max-w-sm">
+            Você ainda não possui doações ou alimentos cadastrados no sistema.
+          </p>
+        </div>
+    );
+  }
+
   return (
       <section
           aria-label="Histórico de contribuições de alimentos"
-          className="gap-8 pt-10 pb-20 px-6 md:px-[150px] flex flex-col items-start relative self-stretch w-full"
+          className="gap-8 pt-6 pb-20 px-6 md:px-[150px] flex flex-col items-start relative self-stretch w-full"
       >
         <div className="gap-6 flex flex-col items-start relative self-stretch w-full">
           {alimentos.map((alimento) => (
               <article
-                  key={alimento.id}
+                  key={alimento.idAlimento}
                   className="flex items-start gap-6 relative self-stretch w-full"
               >
                 <div className="flex flex-col sm:flex-row items-start gap-5 p-5 relative flex-1 bg-white rounded-2xl border border-solid border-gray-200 shadow-xs">
                   <img
-                      className="relative w-full sm:w-40 h-[190px] object-cover rounded-lg"
+                      className="relative w-full sm:w-40 h-[190px] object-cover rounded-lg bg-gray-100"
                       alt={`Imagem de ${alimento.nome}`}
-                      src={alimento.imagem}
+                      src={obterImagemLocal(alimento)}
                       loading="lazy"
                   />
                   <div className="flex flex-col min-h-[190px] items-start justify-between relative flex-1 w-full">
@@ -372,7 +376,7 @@ const SecaoHistoricoContribuicoes: React.FC<SecaoHistoricoProps> = ({
                       </div>
 
                       <p className="relative self-stretch font-normal text-gray-500 text-sm leading-5 line-clamp-2">
-                        {alimento.descricao}
+                        {alimento.descricao || "Sem descrição informada."}
                       </p>
 
                       <div className="flex-col items-start gap-1 pt-2 pb-0 flex relative self-stretch w-full">
@@ -380,14 +384,14 @@ const SecaoHistoricoContribuicoes: React.FC<SecaoHistoricoProps> = ({
                       <span className="font-semibold text-[#2b2e23]">
                         Quantidade:{" "}
                       </span>
-                          <span className="text-gray-500">{alimento.quantidade} unidades</span>
+                          <span className="text-gray-500">{alimento.qntd}</span>
                         </p>
                         <p className="relative w-fit text-sm leading-normal">
                       <span className="font-semibold text-[#2b2e23]">
                         Data de validade:{" "}
                       </span>
                           <span className="text-gray-500">
-                        {formatarDataExibicao(alimento.dataValidade)}
+                        {formatarDataExibicao(alimento.validade)}
                       </span>
                         </p>
                       </div>
@@ -401,13 +405,31 @@ const SecaoHistoricoContribuicoes: React.FC<SecaoHistoricoProps> = ({
   );
 };
 
-
 // ==================== COMPONENTE PRINCIPAL ====================
 
 const MeusAlimentos = () => {
-  const [alimentos, setAlimentos] = useState<ContribuicaoAlimento[]>(contribuicoesIniciais);
+  const [alimentos, setAlimentos] = useState<ContribuicaoAlimento[]>([]);
+  const [carregando, setCarregando] = useState(true);
   const [alimentoSelecionado, setAlimentoSelecionado] = useState<ContribuicaoAlimento | null>(null);
   const [mensagemSucesso, setMensagemSucesso] = useState("");
+
+  useEffect(() => {
+    async function carregarAlimentos() {
+      setCarregando(true);
+      try {
+        const idUsuario = localStorage.getItem("idUsuario");
+        if (idUsuario) {
+          const dados = await alimentoService.obterPorDoador(idUsuario);
+          setAlimentos(dados || []);
+        }
+      } catch (erro) {
+        console.error("Erro ao carregar alimentos do doador:", erro);
+      } finally {
+        setCarregando(false);
+      }
+    }
+    carregarAlimentos();
+  }, []);
 
   const handleAbrirEdicao = (alimento: ContribuicaoAlimento) => {
     setAlimentoSelecionado(alimento);
@@ -419,16 +441,28 @@ const MeusAlimentos = () => {
   };
 
   const handleSalvarEdicao = async (alimentoAtualizado: ContribuicaoAlimento) => {
-    // integrar com a api
+    try {
 
-    setAlimentos((prev) =>
-        prev.map((item) =>
-            item.id === alimentoAtualizado.id ? alimentoAtualizado : item
-        )
-    );
+      await alimentoService.atualizarParcialmente(
+          alimentoAtualizado.idAlimento,
+          alimentoAtualizado
+      );
 
-    setMensagemSucesso("Alimento atualizado com sucesso!");
-    setTimeout(() => setMensagemSucesso(""), 4000);
+
+      setAlimentos((prev) =>
+          prev.map((item) =>
+              item.idAlimento === alimentoAtualizado.idAlimento
+                  ? alimentoAtualizado
+                  : item
+          )
+      );
+
+      setMensagemSucesso("Alimento atualizado com sucesso!");
+      setTimeout(() => setMensagemSucesso(""), 4000);
+    } catch (erro) {
+      console.error("Erro ao atualizar alimento:", erro);
+      throw new Error("Não foi possível salvar as alterações. Tente novamente.");
+    }
   };
 
   return (
@@ -457,17 +491,22 @@ const MeusAlimentos = () => {
 
           <SecaoHistoricoContribuicoes
               alimentos={alimentos}
+              carregando={carregando}
               onEditarClick={handleAbrirEdicao}
           />
         </main>
 
         <Footer />
 
-        <ModalEditarAlimento
-            alimento={alimentoSelecionado}
-            onClose={handleFecharEdicao}
-            onSalvar={handleSalvarEdicao}
-        />
+
+        {alimentoSelecionado && (
+            <ModalEditarAlimento
+                key={alimentoSelecionado.idAlimento}
+                alimento={alimentoSelecionado}
+                onClose={handleFecharEdicao}
+                onSalvar={handleSalvarEdicao}
+            />
+        )}
       </div>
   );
 };
