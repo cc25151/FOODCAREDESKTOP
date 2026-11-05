@@ -84,7 +84,13 @@ const ModalDetalhesAlimento: React.FC<ModalProps> = ({ alimento, onClose }) => {
   const handleIrParaPerfilDoador = (e: React.MouseEvent) => {
     e.stopPropagation();
     onClose();
-    router.push("/perfil-doador");
+    const idParaEnviar = alimento.doador?.idUsuario || alimento.idDoador;
+    
+    if (idParaEnviar) {
+      router.push(`/perfil-doador?id=${idParaEnviar}`);
+    } else {
+      console.error("ID do doador não encontrado neste alimento.");
+    }
   };
 
   const nomeDoador = alimento.doador?.usuario?.nome || "Doador FoodCare";
