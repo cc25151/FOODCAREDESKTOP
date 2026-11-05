@@ -25,12 +25,12 @@ export type ContribuicaoAlimento = {
   qntd: string | number;
   validade: string;
   idCategoria?: number;
-  categoria?: string;
+  nomeCategoria?: string;
   imagem?: string;
 };
 
 interface ModalEditarAlimentoProps {
-  alimento: ContribuicaoAlimento | null;
+  alimento: ContribuicaoAlimento;
   onClose: () => void;
   onSalvar: (alimentoAtualizado: ContribuicaoAlimento) => Promise<void>;
 }
@@ -57,7 +57,7 @@ const obterImagemLocal = (alimento: ContribuicaoAlimento): string => {
 
 const formatarDataParaInput = (dataISO?: string): string => {
   if (!dataISO) return "";
-  return dataISO.split("T")[0]; // Garante YYYY-MM-DD para <input type="date">
+  return dataISO.split("T")[0]; // Retorna YYYY-MM-DD para <input type="date">
 };
 
 const formatarDataExibicao = (dataISO?: string): string => {
@@ -114,15 +114,16 @@ const ModalEditarAlimento: React.FC<ModalEditarAlimentoProps> = ({
                                                                    onSalvar,
                                                                  }) => {
   const [formData, setFormData] = useState<ContribuicaoAlimento>(() => ({
-    idAlimento: alimento?.idAlimento ?? 0,
-    nome: alimento?.nome ?? "",
-    descricao: alimento?.descricao ?? "",
-    qntd: alimento?.qntd ?? "",
-    validade: formatarDataParaInput(alimento?.validade),
-    idCategoria: alimento?.idCategoria,
-    categoria: alimento?.categoria,
-    imagem: alimento?.imagem,
+    idAlimento: alimento.idAlimento,
+    nome: alimento.nome || "",
+    descricao: alimento.descricao || "",
+    qntd: alimento.qntd || "",
+    validade: formatarDataParaInput(alimento.validade),
+    idCategoria: alimento.idCategoria,
+    nomeCategoria: alimento.nomeCategoria,
+    imagem: alimento.imagem,
   }));
+
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState("");
 
@@ -134,12 +135,18 @@ const ModalEditarAlimento: React.FC<ModalEditarAlimentoProps> = ({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onClose, salvando]);
 
-  if (!alimento) return null;
-
   const handleChange = (
       e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
+
+    if (name === "qntd") {
+      // Permite apenas dígitos numéricos
+      const valorApenasNumeros = value.replace(/\D/g, "");
+      setFormData((prev) => ({ ...prev, qntd: valorApenasNumeros }));
+      return;
+    }
+
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -219,7 +226,7 @@ const ModalEditarAlimento: React.FC<ModalEditarAlimentoProps> = ({
                   id="descricao"
                   name="descricao"
                   rows={3}
-                  value={formData.descricao || ""}
+                  value={formData.descricao}
                   onChange={handleChange}
                   required
                   className="w-full bg-[#f4f4f1] border border-gray-200/80 rounded-2xl px-4 py-3 text-sm text-[#2b2e23] font-medium focus:outline-none focus:border-[#2b2e23] focus:bg-white transition-all resize-none"
@@ -232,17 +239,18 @@ const ModalEditarAlimento: React.FC<ModalEditarAlimentoProps> = ({
                   htmlFor="qntd"
                   className="text-xs font-bold text-gray-500 uppercase tracking-wider"
               >
-                Quantidade / Porção
+                Quantidade (somente números)
               </label>
               <input
                   id="qntd"
                   name="qntd"
                   type="text"
-                  value={formData.qntd || ""}
+                  inputMode="numeric"
+                  value={formData.qntd}
                   onChange={handleChange}
                   required
                   className="w-full bg-[#f4f4f1] border border-gray-200/80 rounded-2xl px-4 py-3 text-sm text-[#2b2e23] font-medium focus:outline-none focus:border-[#2b2e23] focus:bg-white transition-all"
-                  placeholder="Ex: 10 unidades, 5 kg..."
+                  placeholder="Ex: 10"
               />
             </div>
 
@@ -257,7 +265,7 @@ const ModalEditarAlimento: React.FC<ModalEditarAlimentoProps> = ({
                   id="validade"
                   name="validade"
                   type="date"
-                  value={formData.validade || ""}
+                  value={formData.validade}
                   onChange={handleChange}
                   required
                   className="w-full bg-[#f4f4f1] border border-gray-200/80 rounded-2xl px-4 py-3 text-sm text-[#2b2e23] font-medium focus:outline-none focus:border-[#2b2e23] focus:bg-white transition-all cursor-pointer"
@@ -434,11 +442,18 @@ const MeusAlimentos = () => {
 
   const handleSalvarEdicao = async (alimentoAtualizado: ContribuicaoAlimento) => {
     try {
-      await alimentoService.atualizar(alimentoAtualizado.idAlimento, alimentoAtualizado);
+
+      await alimentoService.atualizarParcialmente(
+          alimentoAtualizado.idAlimento,
+          alimentoAtualizado
+      );
+
 
       setAlimentos((prev) =>
           prev.map((item) =>
-              item.idAlimento === alimentoAtualizado.idAlimento ? alimentoAtualizado : item
+              item.idAlimento === alimentoAtualizado.idAlimento
+                  ? alimentoAtualizado
+                  : item
           )
       );
 
@@ -483,11 +498,15 @@ const MeusAlimentos = () => {
 
         <Footer />
 
-        <ModalEditarAlimento
-            alimento={alimentoSelecionado}
-            onClose={handleFecharEdicao}
-            onSalvar={handleSalvarEdicao}
-        />
+
+        {alimentoSelecionado && (
+            <ModalEditarAlimento
+                key={alimentoSelecionado.idAlimento}
+                alimento={alimentoSelecionado}
+                onClose={handleFecharEdicao}
+                onSalvar={handleSalvarEdicao}
+            />
+        )}
       </div>
   );
 };
