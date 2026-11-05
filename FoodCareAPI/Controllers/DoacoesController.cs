@@ -16,31 +16,31 @@ public class DoacoesController : ControllerBase
         _bancoDeDados = bancoDeDados;
     }
 
-    [HttpGet]
-    public async Task<IActionResult> ObterTodas()
+[HttpGet]
+public async Task<IActionResult> ObterTodas()
+{
+    var doacoes = await _bancoDeDados.Doacao
+        .Include(d => d.doador).ThenInclude(doad => doad!.usuario)
+        .Include(d => d.receptor)
+        .Include(d => d.alimento)
+        .ToListAsync();
+
+    var usuarios = await _bancoDeDados.Usuario.ToListAsync();
+
+    var resultado = doacoes.Select(d => new
     {
-        var doacoes = await _bancoDeDados.Doacao
-            .Include(d => d.doador).ThenInclude(doad => doad.usuario)
-            .Include(d => d.receptor)
-            .Include(d => d.alimento)
-            .ToListAsync();
+        d.idDoacao,
+        d.dataDoacao,
+        d.horario,
+        d.avaliacao,
+        d.status,
+        doadorNome = d.doador?.usuario?.nome ?? "Não informado",
+        receptorNome = usuarios.FirstOrDefault(u => u.idUsuario == d.receptor?.idUsuario)?.nome ?? "Não informado",
+        alimentoNome = d.alimento?.nome ?? "Não informado"
+    }).ToList();
 
-        var usuarios = await _bancoDeDados.Usuario.ToListAsync();
-
-        var resultado = doacoes.Select(d => new
-        {
-            d.idDoacao,
-            d.dataDoacao,
-            d.horario,
-            d.avaliacao,
-            d.status,
-            doadorNome = d.doador?.usuario?.nome ?? "Não informado",
-            receptorNome = usuarios.FirstOrDefault(u => u.idUsuario == d.receptor.idUsuario)?.nome ?? "Não informado",
-            alimentoNome = d.alimento?.nome ?? "Não informado"
-        }).ToList();
-
-        return Ok(resultado);
-    }
+    return Ok(resultado);
+}
 
     [HttpGet("realizadas")]
     public async Task<IActionResult> ObterRealizadas()
@@ -87,14 +87,14 @@ public class DoacoesController : ControllerBase
     [HttpGet("doador/{idDoador:int}")]
     public async Task<IActionResult> ObterPorDoador(int idDoador)
     {
+        // 1. Busca doações aceitando tanto o idDoador quanto o idUsuario do Doador
         var doacoes = await _bancoDeDados.Doacao
-            .Where(d => d.idDoador == idDoador)
+            .Include(d => d.doador)
             .Include(d => d.alimento)
+            .Where(d => d.idDoador == idDoador || (d.doador != null && d.doador.idUsuario == idDoador))
             .ToListAsync();
 
-        if (!doacoes.Any()) 
-            return NotFound("Nenhuma doação encontrada para este doador.");
-
+        // 2. Transforma o resultado (se for vazio, gera [] sem estourar 404)
         var resultado = doacoes.Select(d => new
         {
             d.idDoacao,
@@ -102,63 +102,100 @@ public class DoacoesController : ControllerBase
             d.horario,
             d.avaliacao,
             d.status,
-            alimentoNome = d.alimento?.nome ?? "Não informado"
+            alimentoNome = d.alimento?.nome ?? "Não informado",
+            descricao = d.alimento?.descricao ?? "",
+            qntd = d.alimento?.qntd ?? 0,
+            idCategoria = d.alimento?.idCategoria
         }).ToList();
 
         return Ok(resultado);
     }
 
     [HttpPost]
-    public async Task<IActionResult> Cadastrar([FromBody] Doacao novaDoacao)
+public async Task<IActionResult> Cadastrar([FromBody] Doacao novaDoacao)
+{
+    try
     {
-        var doadorExiste = await _bancoDeDados.Doador.AnyAsync(d => d.idDoador == novaDoacao.idDoador);
-        if (!doadorExiste) 
-            return NotFound("Doador não encontrado na base de dados.");
-
-        var receptorExiste = await _bancoDeDados.Receptor.AnyAsync(r => r.idReceptor == novaDoacao.idReceptor);
-        if (!receptorExiste)
-            return NotFound("Receptor não encontrado na base de dados.");
-
-        var alimento = await _bancoDeDados.Alimento.FirstOrDefaultAsync(a => 
-            a.idAlimento == novaDoacao.idAlimento && a.idDoador == novaDoacao.idDoador);
+        // 1. Localiza o alimento para obter o idDoador real
+        var alimento = await _bancoDeDados.Alimento
+            .FirstOrDefaultAsync(a => a.idAlimento == novaDoacao.idAlimento);
 
         if (alimento == null) 
-            return BadRequest("Alimento inválido ou não pertence a este doador.");
+            return NotFound("Alimento não encontrado na base de dados.");
 
-        novaDoacao.avaliacao = 0;
-        novaDoacao.status = "Pendente";
-        
-        if (novaDoacao.dataDoacao == default) novaDoacao.dataDoacao = DateOnly.FromDateTime(DateTime.Now);
-        if (novaDoacao.horario == default) novaDoacao.horario = TimeOnly.FromDateTime(DateTime.Now);
+        // 2. Localiza o receptor pelo idReceptor ou idUsuario
+        var receptor = await _bancoDeDados.Receptor
+            .FirstOrDefaultAsync(r => r.idReceptor == novaDoacao.idReceptor || r.idUsuario == novaDoacao.idReceptor);
 
-        _bancoDeDados.Doacao.Add(novaDoacao);
-        await _bancoDeDados.SaveChangesAsync();
+        if (receptor == null)
+            return NotFound("Receptor não encontrado na base de dados.");
 
-        return Created($"/doacoes/{novaDoacao.idDoacao}", new
+
+        var doacaoParaSalvar = new Doacao
         {
-            id = novaDoacao.idDoacao,
+            idDoador = alimento.idDoador,
+            idReceptor = receptor.idReceptor,
+            idAlimento = alimento.idAlimento,
+            dataDoacao = novaDoacao.dataDoacao != default ? novaDoacao.dataDoacao : DateOnly.FromDateTime(DateTime.Now),
+            horario = novaDoacao.horario != default ? novaDoacao.horario : TimeOnly.FromDateTime(DateTime.Now),
+            avaliacao = null,
+            status = "Pendente"
+        };
+
+        _bancoDeDados.Doacao.Add(doacaoParaSalvar);
+        await _bancoDeDados.SaveChangesAsync(); 
+
+        return Created($"/doacoes/{doacaoParaSalvar.idDoacao}", new
+        {
+            id = doacaoParaSalvar.idDoacao,
             alimento = alimento.nome,
-            status = novaDoacao.status,
+            status = doacaoParaSalvar.status,
             mensagem = "Doação registrada com sucesso!"
         });
     }
+    catch (Exception ex)
+    {
+        var detalheErro = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+        return StatusCode(500, new { erro = "Falha ao gravar no banco de dados.", detalhe = detalheErro });
+    }
+}
 
     [HttpPatch("{id:int}/finalizar")]
-    public async Task<IActionResult> Finalizar(int id, [FromQuery] int nota)
+    public async Task<IActionResult> Finalizar(int id, [FromQuery] int? idDoador, [FromQuery] int? nota)
     {
-        var doacao = await _bancoDeDados.Doacao.FindAsync(id);
+        // Inclui a propriedade de navegação doador para acessar o idUsuario
+        var doacao = await _bancoDeDados.Doacao
+            .Include(d => d.doador)
+            .FirstOrDefaultAsync(d => d.idDoacao == id);
 
         if (doacao is null) 
             return NotFound("Doação não encontrada.");
-        
-        if (nota < 1 || nota > 5) 
-            return BadRequest("A nota de avaliação deve estar entre 1 e 5 estrelas.");
 
-        doacao.avaliacao = nota;
+        // Valida se o ID repassado pertence ao doador (seja por idDoador ou por idUsuario)
+        if (idDoador.HasValue)
+        {
+            bool ehDoadorValido = doacao.idDoador == idDoador.Value || 
+                                (doacao.doador != null && doacao.doador.idUsuario == idDoador.Value);
+
+            if (!ehDoadorValido)
+            {
+                return BadRequest("Esta doação não pertence a este doador.");
+            }
+        }
+
+        // Se uma nota for fornecida, valida se está no intervalo de 1 a 5
+        if (nota.HasValue)
+        {
+            if (nota.Value < 1 || nota.Value > 5) 
+                return BadRequest("A nota de avaliação deve estar entre 1 e 5 estrelas.");
+
+            doacao.avaliacao = nota.Value;
+        }
+
         doacao.status = "Finalizada";
         
         await _bancoDeDados.SaveChangesAsync();
 
-        return Ok(new { mensagem = "Doação finalizada e avaliada com sucesso!" });
+        return Ok(new { mensagem = "Doação finalizada com sucesso!" });
     }
 }

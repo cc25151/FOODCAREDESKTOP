@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { isAxiosError } from "axios";
 import { categoriaService } from "@/services/categoriaService";
 import { alimentoService } from "@/services/alimentoService";
+import { doacaoService } from "@/services/doacaoService";
 import {
   Search,
   X,
@@ -16,7 +17,8 @@ import {
   User,
   Sparkles,
   MapPinOff,
-  Loader2
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
 
 // ==================== TIPOS ====================
@@ -43,6 +45,8 @@ export type Alimento = {
       nome?: string;
       cidade?: string;
       bairro?: string;
+      latitude?: number;
+      longitude?: number;
     };
   };
   imagem?: string;
@@ -65,20 +69,61 @@ interface ModalProps {
 
 const ModalDetalhesAlimento: React.FC<ModalProps> = ({ alimento, onClose }) => {
   const router = useRouter();
+  const [registrando, setRegistrando] = useState(false);
+  const [erro, setErro] = useState("");
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape" && !registrando) onClose();
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
+  }, [onClose, registrando]);
 
   if (!alimento) return null;
 
-  const handleQueroEsteProduto = () => {
-    onClose();
-    router.push("/produto-requisitado");
+  const handleQueroEsteProduto = async () => {
+    setRegistrando(true);
+    setErro("");
+
+    try {
+      const idUsuarioStorage = localStorage.getItem("idUsuario");
+
+      if (!idUsuarioStorage) {
+        setErro("Usuário não autenticado. Efetue login novamente.");
+        setRegistrando(false);
+        return;
+      }
+
+      // Payload simplificado: idDoador é obtido via alimento no C#
+      const payload = {
+        idAlimento: Number(alimento.idAlimento),
+        idReceptor: Number(idUsuarioStorage),
+      };
+
+      const resposta = await doacaoService.cadastrar(payload);
+      const idDoacaoGerada = resposta.id || resposta.idDoacao || 0;
+
+      const lat = alimento.doador?.usuario?.latitude ?? "";
+      const lng = alimento.doador?.usuario?.longitude ?? "";
+
+      onClose();
+
+      const query = new URLSearchParams({
+        idDoacao: String(idDoacaoGerada),
+        nomeAlimento: alimento.nome,
+        lat: String(lat),
+        lng: String(lng),
+        doador: alimento.doador?.usuario?.nome || "Doador",
+      });
+
+      router.push(`/produto-requisitado?${query.toString()}`);
+    } catch (err: unknown) {
+      console.error("Erro no cadastro da doação:", err);
+      setErro("Erro ao registrar a doação. Verifique se seu perfil de receptor está completo.");
+    } finally {
+      setRegistrando(false);
+    }
   };
 
   const handleIrParaPerfilDoador = (e: React.MouseEvent) => {
@@ -88,9 +133,10 @@ const ModalDetalhesAlimento: React.FC<ModalProps> = ({ alimento, onClose }) => {
   };
 
   const nomeDoador = alimento.doador?.usuario?.nome || "Doador FoodCare";
-  const textoDistancia = alimento.distancia !== undefined && alimento.distancia !== null
-      ? `${alimento.distancia.toFixed(1)} km de distância`
-      : "Distância não calculada";
+  const textoDistancia =
+      alimento.distancia !== undefined && alimento.distancia !== null
+          ? `${alimento.distancia.toFixed(1)} km de distância`
+          : "Distância não calculada";
 
   return (
       <div
@@ -105,6 +151,7 @@ const ModalDetalhesAlimento: React.FC<ModalProps> = ({ alimento, onClose }) => {
         >
           <button
               onClick={onClose}
+              disabled={registrando}
               className="absolute top-4 left-4 z-10 p-2.5 bg-white/90 hover:bg-white text-gray-700 rounded-full shadow-md border border-gray-200 cursor-pointer"
               aria-label="Fechar janela"
           >
@@ -113,7 +160,7 @@ const ModalDetalhesAlimento: React.FC<ModalProps> = ({ alimento, onClose }) => {
 
           <div className="relative w-full h-64 bg-gray-100 flex items-center justify-center overflow-hidden">
             <img
-                src={imagens[Number(alimento.idCategoria)]}
+                src={imagens[Number(alimento.idCategoria)] || "/doacoes/embalados.png"}
                 alt={alimento.nome}
                 className="w-full h-full object-cover"
             />
@@ -125,6 +172,13 @@ const ModalDetalhesAlimento: React.FC<ModalProps> = ({ alimento, onClose }) => {
           </div>
 
           <div className="p-6 flex flex-col gap-5">
+            {erro && (
+                <div className="w-full bg-red-50 border border-red-200 text-red-800 p-3.5 rounded-2xl flex items-center gap-2 text-xs">
+                  <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                  <span>{erro}</span>
+                </div>
+            )}
+
             <div className="text-center bg-[#fdfdf7] p-4 rounded-2xl border border-[#e8eaaf]">
               <h2 className="font-serif font-bold text-2xl text-[#2b2e23]">
                 {alimento.nome}
@@ -181,10 +235,20 @@ const ModalDetalhesAlimento: React.FC<ModalProps> = ({ alimento, onClose }) => {
 
             <button
                 onClick={handleQueroEsteProduto}
-                className="w-full py-3.5 bg-[#bf211e] hover:bg-[#a91d1a] text-white font-bold text-base rounded-xl transition-all shadow-md active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2"
+                disabled={registrando}
+                className="w-full py-3.5 bg-[#bf211e] hover:bg-[#a91d1a] text-white font-bold text-base rounded-xl transition-all shadow-md active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
             >
-              <span>Quero este produto</span>
-              <ChevronRight className="w-5 h-5" />
+              {registrando ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span>Registrando Doação...</span>
+                  </>
+              ) : (
+                  <>
+                    <span>Quero este produto</span>
+                    <ChevronRight className="w-5 h-5" />
+                  </>
+              )}
             </button>
           </div>
         </div>
@@ -204,7 +268,6 @@ const SecaoFeedReceptor = () => {
   const [erroLocalizacao, setErroLocalizacao] = useState(false);
   const [alimentoSelecionado, setAlimentoSelecionado] = useState<Alimento | null>(null);
 
-
   useEffect(() => {
     const carregarCategorias = async () => {
       try {
@@ -216,7 +279,6 @@ const SecaoFeedReceptor = () => {
     };
     carregarCategorias();
   }, []);
-
 
   useEffect(() => {
     const carregarFeed = async () => {
@@ -240,7 +302,6 @@ const SecaoFeedReceptor = () => {
         } else if (categoriaSelecionada === "todos") {
           setAlimentos(lista);
         } else {
-
           const idCat = Number(categoriaSelecionada);
           setAlimentos(lista.filter((item) => item.idCategoria === idCat));
         }
@@ -262,7 +323,6 @@ const SecaoFeedReceptor = () => {
     carregarFeed();
   }, [categoriaSelecionada]);
 
-
   const alimentosFiltrados = alimentos.filter((item) => {
     const termo = busca.toLowerCase();
     const nome = item.nome?.toLowerCase() || "";
@@ -273,14 +333,11 @@ const SecaoFeedReceptor = () => {
   return (
       <section className="w-full bg-[#f8f8f6] py-10 px-4 md:px-12 flex flex-col items-center min-h-[calc(100vh-129px)]">
         <div className="w-full max-w-[1296px] flex flex-col items-center gap-8">
-
-          {/* Cabeçalho */}
           <div className="flex flex-col items-center text-center gap-4 w-full">
             <h1 className="font-serif font-bold text-3xl sm:text-5xl text-[#2b2e23] tracking-tight">
               Alimentos disponíveis
             </h1>
 
-            {/* Campo de Busca */}
             <div className="relative w-full max-w-md mt-2">
               <input
                   type="text"
@@ -300,10 +357,8 @@ const SecaoFeedReceptor = () => {
               )}
             </div>
 
-            {/* Seletor de Categorias / Recomendados / Todos */}
             <div className="w-full max-w-3xl overflow-x-auto py-2 px-4 no-scrollbar">
               <div className="flex items-center gap-2 w-max mx-auto">
-                {/* Opção TODOS */}
                 <button
                     type="button"
                     onClick={() => setCategoriaSelecionada("todos")}
@@ -316,7 +371,6 @@ const SecaoFeedReceptor = () => {
                   Todos
                 </button>
 
-                {/* Opção RECOMENDADOS */}
                 <button
                     type="button"
                     onClick={() => setCategoriaSelecionada("recomendados")}
@@ -330,7 +384,6 @@ const SecaoFeedReceptor = () => {
                   Recomendados
                 </button>
 
-                {/* Categorias Dinâmicas da tabela Categoria */}
                 {categorias.map((cat) => (
                     <button
                         key={cat.idCategoria}
@@ -349,14 +402,12 @@ const SecaoFeedReceptor = () => {
             </div>
           </div>
 
-          {/* Estado de Carregamento */}
           {carregando ? (
               <div className="py-20 flex flex-col items-center gap-3 text-gray-500">
                 <Loader2 className="w-8 h-8 animate-spin text-[#bf211e]" />
                 <p className="text-sm font-semibold">Buscando alimentos...</p>
               </div>
           ) : erroLocalizacao ? (
-              /* Alerta caso a API retorne 400 em Recomendados */
               <div className="w-full max-w-md bg-amber-50 border border-amber-200 rounded-3xl p-6 text-center flex flex-col items-center gap-3 my-8 shadow-xs">
                 <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center text-amber-700">
                   <MapPinOff className="w-6 h-6" />
@@ -373,7 +424,6 @@ const SecaoFeedReceptor = () => {
                 Nenhum alimento encontrado para esta seleção.
               </div>
           ) : (
-              /* Grid de Alimentos */
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full pt-2">
                 {alimentosFiltrados.map((alimento) => (
                     <article
@@ -383,7 +433,7 @@ const SecaoFeedReceptor = () => {
                     >
                       <div className="relative w-full h-48 bg-gray-100 overflow-hidden">
                         <img
-                            src={imagens[Number(alimento.idCategoria)]}
+                            src={imagens[Number(alimento.idCategoria)] || "/doacoes/embalados.png"}
                             alt={alimento.nome}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                             loading="lazy"
